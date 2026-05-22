@@ -9,7 +9,16 @@ public interface ITargetLauncher
 
 public interface IVisibleWindowCloser
 {
-    Task<CloseWindowsResult> CloseVisibleWindowsAsync(CancellationToken cancellationToken = default);
+    Task<CloseWindowsResult> CloseVisibleWindowsAsync(
+        CloseWindowsRequest request,
+        CancellationToken cancellationToken = default);
+}
+
+public interface ICloseWindowsConfirmationService
+{
+    Task<CloseWindowsSelectionResult> ConfirmCloseWindowsAsync(
+        IReadOnlyList<CloseWindowCandidate> candidates,
+        CancellationToken cancellationToken = default);
 }
 
 public interface ILaunchDelay

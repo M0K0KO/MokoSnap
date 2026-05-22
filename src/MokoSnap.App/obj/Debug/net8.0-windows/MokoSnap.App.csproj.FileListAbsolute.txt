@@ -26,3 +26,7 @@ C:\PORTFOLIO\MokoSnap\src\MokoSnap.App\obj\Debug\net8.0-windows\MokoSnap.App.gen
 C:\PORTFOLIO\MokoSnap\src\MokoSnap.App\obj\Debug\net8.0-windows\ref\MokoSnap.App.dll
 C:\PORTFOLIO\MokoSnap\src\MokoSnap.App\obj\Debug\net8.0-windows\Views\CapturedAppsDialog.baml
 C:\PORTFOLIO\MokoSnap\src\MokoSnap.App\obj\Debug\net8.0-windows\Views\CapturedAppsDialog.g.cs
+C:\PORTFOLIO\MokoSnap\src\MokoSnap.App\obj\Debug\net8.0-windows\Views\CloseWindowsDialog.baml
+C:\PORTFOLIO\MokoSnap\src\MokoSnap.App\obj\Debug\net8.0-windows\Views\CloseWindowsDialog.g.cs
+C:\PORTFOLIO\MokoSnap\src\MokoSnap.App\obj\Debug\net8.0-windows\Views\CommandPaletteWindow.baml
+C:\PORTFOLIO\MokoSnap\src\MokoSnap.App\obj\Debug\net8.0-windows\Views\CommandPaletteWindow.g.cs

@@ -43,6 +43,52 @@ public class PresetRunnerServiceTests
         Assert.Equal(1, closer.CallCount);
         Assert.NotNull(result.CloseWindowsResult);
         Assert.Equal(["close", "launch:one"], calls);
+        Assert.True(closer.Requests[0].ConfirmBeforeClosing);
+    }
+
+    [Fact]
+    public async Task SkipConfirmationPassesCloseRequestWithoutConfirmation()
+    {
+        FakeTargetLauncher launcher = new();
+        FakeVisibleWindowCloser closer = new();
+        FakeLaunchDelay delay = new();
+        PresetRunnerService runner = new(launcher, closer, delay);
+
+        await runner.RunAsync(new Preset
+        {
+            ClosePolicy = ClosePolicy.CloseVisibleWindowsOnly,
+            CloseConfirmationPolicy = CloseConfirmationPolicy.SkipConfirmation,
+            Targets = [CreateTarget("one")]
+        });
+
+        Assert.False(closer.Requests[0].ConfirmBeforeClosing);
+    }
+
+    [Fact]
+    public async Task CloseVisibleWindowsCancelStopsBeforeLaunchingTargets()
+    {
+        FakeTargetLauncher launcher = new();
+        FakeVisibleWindowCloser closer = new()
+        {
+            Result = new CloseWindowsResult
+            {
+                Succeeded = false,
+                Canceled = true,
+                Message = "canceled"
+            }
+        };
+        FakeLaunchDelay delay = new();
+        PresetRunnerService runner = new(launcher, closer, delay);
+
+        PresetRunResult result = await runner.RunAsync(new Preset
+        {
+            ClosePolicy = ClosePolicy.CloseVisibleWindowsOnly,
+            Targets = [CreateTarget("one")]
+        });
+
+        Assert.False(result.Succeeded);
+        Assert.True(result.CloseWindowsResult?.Canceled);
+        Assert.Empty(launcher.LaunchedTargetNames);
     }
 
     [Fact]
@@ -162,11 +208,18 @@ public class PresetRunnerServiceTests
 
         public int CallCount { get; private set; }
 
-        public Task<CloseWindowsResult> CloseVisibleWindowsAsync(CancellationToken cancellationToken = default)
+        public List<CloseWindowsRequest> Requests { get; } = [];
+
+        public CloseWindowsResult Result { get; set; } = new() { Succeeded = true, ClosedWindowCount = 2 };
+
+        public Task<CloseWindowsResult> CloseVisibleWindowsAsync(
+            CloseWindowsRequest request,
+            CancellationToken cancellationToken = default)
         {
             CallCount++;
+            Requests.Add(request);
             _calls?.Add("close");
-            return Task.FromResult(new CloseWindowsResult { Succeeded = true, ClosedWindowCount = 2 });
+            return Task.FromResult(Result);
         }
     }
 

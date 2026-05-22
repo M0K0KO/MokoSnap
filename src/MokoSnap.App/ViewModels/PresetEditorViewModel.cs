@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using MokoSnap.Core.Capture;
+using MokoSnap.Core.Hotkeys;
 using MokoSnap.Core.Models;
 
 namespace MokoSnap.App.ViewModels;
@@ -20,7 +21,7 @@ public sealed class PresetEditorViewModel : INotifyPropertyChanged
         Id = preset.Id;
         Name = preset.Name;
         Description = preset.Description;
-        HotkeyText = FormatHotkey(preset.Hotkey);
+        HotkeyText = HotkeyGestureFormatter.Format(preset.Hotkey);
         ClosePolicy = preset.ClosePolicy;
         CloseConfirmationPolicy = preset.CloseConfirmationPolicy;
         foreach (TargetConfig target in preset.Targets)
@@ -104,7 +105,7 @@ public sealed class PresetEditorViewModel : INotifyPropertyChanged
             Id = Id,
             Name = Name.Trim(),
             Description = Description.Trim(),
-            Hotkey = ParseHotkey(HotkeyText),
+            Hotkey = HotkeyGestureFormatter.Parse(HotkeyText),
             ClosePolicy = ClosePolicy,
             CloseConfirmationPolicy = CloseConfirmationPolicy,
             Targets = Targets.Select(target => target.ToTarget()).ToList()
@@ -200,76 +201,6 @@ public sealed class PresetEditorViewModel : INotifyPropertyChanged
         DeleteTargetCommand.RaiseCanExecuteChanged();
         MoveTargetUpCommand.RaiseCanExecuteChanged();
         MoveTargetDownCommand.RaiseCanExecuteChanged();
-    }
-
-    private static string FormatHotkey(HotkeyGesture? hotkey)
-    {
-        if (hotkey is null || string.IsNullOrWhiteSpace(hotkey.Key))
-        {
-            return string.Empty;
-        }
-
-        List<string> parts = [];
-        if (hotkey.Ctrl)
-        {
-            parts.Add("Ctrl");
-        }
-
-        if (hotkey.Alt)
-        {
-            parts.Add("Alt");
-        }
-
-        if (hotkey.Shift)
-        {
-            parts.Add("Shift");
-        }
-
-        if (hotkey.Windows)
-        {
-            parts.Add("Win");
-        }
-
-        parts.Add(hotkey.Key);
-        return string.Join("+", parts);
-    }
-
-    private static HotkeyGesture? ParseHotkey(string value)
-    {
-        string[] parts = value.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (parts.Length == 0)
-        {
-            return null;
-        }
-
-        HotkeyGesture hotkey = new();
-        foreach (string part in parts)
-        {
-            if (part.Equals("Ctrl", StringComparison.OrdinalIgnoreCase) ||
-                part.Equals("Control", StringComparison.OrdinalIgnoreCase))
-            {
-                hotkey.Ctrl = true;
-            }
-            else if (part.Equals("Alt", StringComparison.OrdinalIgnoreCase))
-            {
-                hotkey.Alt = true;
-            }
-            else if (part.Equals("Shift", StringComparison.OrdinalIgnoreCase))
-            {
-                hotkey.Shift = true;
-            }
-            else if (part.Equals("Win", StringComparison.OrdinalIgnoreCase) ||
-                     part.Equals("Windows", StringComparison.OrdinalIgnoreCase))
-            {
-                hotkey.Windows = true;
-            }
-            else
-            {
-                hotkey.Key = part;
-            }
-        }
-
-        return string.IsNullOrWhiteSpace(hotkey.Key) ? null : hotkey;
     }
 
     private void SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

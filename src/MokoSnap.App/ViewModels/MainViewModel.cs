@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using MokoSnap.App.Services;
 using MokoSnap.Core.Capture;
+using MokoSnap.Core.Hotkeys;
 using MokoSnap.Core.Models;
 using MokoSnap.Core.Running;
 using MokoSnap.Core.Storage;
@@ -15,6 +16,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private readonly IConfirmationService _confirmationService;
     private readonly ICapturedAppSelectionService _capturedAppSelectionService;
     private readonly PresetRunnerService _presetRunnerService;
+    private readonly IHotkeyService _hotkeyService;
+    private readonly ICommandPaletteService _commandPaletteService;
     private PresetEditorViewModel? _selectedPreset;
     private string _statusMessage = string.Empty;
     private string _runResultMessage = string.Empty;
@@ -24,12 +27,17 @@ public sealed class MainViewModel : INotifyPropertyChanged
         IJsonStorage<AppSettings> settingsStorage,
         IConfirmationService confirmationService,
         ICapturedAppSelectionService capturedAppSelectionService,
-        PresetRunnerService presetRunnerService)
+        PresetRunnerService presetRunnerService,
+        IHotkeyService hotkeyService,
+        ICommandPaletteService commandPaletteService)
     {
         _settingsStorage = settingsStorage;
         _confirmationService = confirmationService;
         _capturedAppSelectionService = capturedAppSelectionService;
         _presetRunnerService = presetRunnerService;
+        _hotkeyService = hotkeyService;
+        _commandPaletteService = commandPaletteService;
+        _hotkeyService.HotkeyPressed += OnHotkeyPressed;
         LoadCommand = new AsyncRelayCommand(LoadAsync);
         AddCommand = new AsyncRelayCommand(AddAsync);
         SaveCommand = new AsyncRelayCommand(SaveAsync, () => SelectedPreset is not null);
@@ -124,7 +132,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
         }
 
         SelectedPreset = Presets.FirstOrDefault();
-        StatusMessage = Presets.Count == 0 ? "No presets yet." : $"Loaded {Presets.Count} preset(s).";
+        List<string> hotkeyMessages = RefreshHotkeyRegistrations(settings.Presets);
+        StatusMessage = BuildStatusWithHotkeySummary(
+            Presets.Count == 0 ? "No presets yet." : $"Loaded {Presets.Count} preset(s).",
+            settings.Presets,
+            hotkeyMessages);
     }
 
     private async Task AddAsync()
@@ -136,8 +148,10 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
         Presets.Add(preset);
         SelectedPreset = preset;
-        await SaveSettingsAsync();
-        StatusMessage = "Preset added.";
+        List<Preset> presets = CreatePresets();
+        await SaveSettingsAsync(presets);
+        List<string> hotkeyMessages = RefreshHotkeyRegistrations(presets);
+        StatusMessage = BuildStatusWithHotkeySummary("Preset added.", presets, hotkeyMessages);
     }
 
     private async Task SaveAsync()
@@ -147,8 +161,17 @@ public sealed class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-        await SaveSettingsAsync();
-        StatusMessage = "Preset saved.";
+        List<Preset> presets = CreatePresets();
+        HotkeyValidationResult validation = HotkeyValidator.ValidatePresets(presets);
+        if (!validation.IsValid)
+        {
+            StatusMessage = $"Preset not saved. {validation.Errors[0].Message}";
+            return;
+        }
+
+        await SaveSettingsAsync(presets);
+        List<string> hotkeyMessages = RefreshHotkeyRegistrations(presets);
+        StatusMessage = BuildStatusWithHotkeySummary("Preset saved.", presets, hotkeyMessages);
     }
 
     private async Task DeleteAsync()
@@ -168,8 +191,10 @@ public sealed class MainViewModel : INotifyPropertyChanged
         Presets.Remove(SelectedPreset);
         SelectedPreset = Presets.Count == 0 ? null : Presets[Math.Min(index, Presets.Count - 1)];
 
-        await SaveSettingsAsync();
-        StatusMessage = "Preset deleted.";
+        List<Preset> presets = CreatePresets();
+        await SaveSettingsAsync(presets);
+        List<string> hotkeyMessages = RefreshHotkeyRegistrations(presets);
+        StatusMessage = BuildStatusWithHotkeySummary("Preset deleted.", presets, hotkeyMessages);
     }
 
     private async Task CaptureCurrentAppsAsync()
@@ -187,8 +212,13 @@ public sealed class MainViewModel : INotifyPropertyChanged
         }
 
         SelectedPreset.AppendCapturedApps(selectedApps);
-        await SaveSettingsAsync();
-        StatusMessage = $"Captured {selectedApps.Count} app target(s).";
+        List<Preset> presets = CreatePresets();
+        await SaveSettingsAsync(presets);
+        List<string> hotkeyMessages = RefreshHotkeyRegistrations(presets);
+        StatusMessage = BuildStatusWithHotkeySummary(
+            $"Captured {selectedApps.Count} app target(s).",
+            presets,
+            hotkeyMessages);
     }
 
     private async Task RunAsync()
@@ -198,14 +228,40 @@ public sealed class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-        Preset preset = SelectedPreset.ToPreset();
-        if (preset.ClosePolicy == ClosePolicy.CloseVisibleWindowsOnly)
+        await RunPresetAsync(SelectedPreset);
+    }
+
+    private async void OnHotkeyPressed(object? sender, HotkeyPressedEventArgs e)
+    {
+        if (e.IsCommandPalette)
         {
-            RunResultMessage = "Close visible windows is not implemented yet. Set close policy to None or implement the close windows task first.";
-            StatusMessage = "Preset was not run.";
+            PresetEditorViewModel? selected = _commandPaletteService.SelectPreset(Presets.ToList());
+            if (selected is not null)
+            {
+                SelectedPreset = selected;
+                await RunPresetAsync(selected);
+            }
+
             return;
         }
 
+        PresetEditorViewModel? preset = Presets.FirstOrDefault(item => item.Id == e.PresetId);
+        if (preset is not null)
+        {
+            SelectedPreset = preset;
+            await RunPresetAsync(preset);
+        }
+    }
+
+    private async Task RunPresetAsync(PresetEditorViewModel presetEditor)
+    {
+        if (IsRunning)
+        {
+            StatusMessage = "Preset already running.";
+            return;
+        }
+
+        Preset preset = presetEditor.ToPreset();
         try
         {
             IsRunning = true;
@@ -214,7 +270,9 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
             PresetRunResult result = await _presetRunnerService.RunAsync(preset);
             RunResultMessage = FormatRunResult(result);
-            StatusMessage = result.Succeeded ? "Preset run completed." : "Preset run completed with failures.";
+            StatusMessage = result.CloseWindowsResult?.Canceled == true
+                ? "Preset run canceled."
+                : result.Succeeded ? "Preset run completed." : "Preset run completed with failures.";
         }
         catch (Exception ex)
         {
@@ -237,6 +295,29 @@ public sealed class MainViewModel : INotifyPropertyChanged
             $"Failed targets: {failureCount}"
         ];
 
+        if (result.CloseWindowsResult is not null)
+        {
+            CloseWindowsResult closeResult = result.CloseWindowsResult;
+            lines.Add(
+                $"Closed windows: {closeResult.ClosedWindowCount}; failed: {closeResult.FailedWindows.Count}; skipped: {closeResult.SkippedWindows.Count}");
+            if (closeResult.Canceled)
+            {
+                lines.Add("Window closing canceled. Targets were not launched.");
+            }
+            else if (!string.IsNullOrWhiteSpace(closeResult.Message))
+            {
+                lines.Add(closeResult.Message);
+            }
+
+            foreach (CloseWindowFailure failure in closeResult.FailedWindows)
+            {
+                string title = string.IsNullOrWhiteSpace(failure.Window.WindowTitle)
+                    ? failure.Window.ProcessName
+                    : failure.Window.WindowTitle;
+                lines.Add($"Close failed: {title} - {failure.Message}");
+            }
+        }
+
         foreach (TargetRunResult targetResult in result.TargetResults)
         {
             string targetName = string.IsNullOrWhiteSpace(targetResult.Target.DisplayName)
@@ -252,12 +333,94 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     private Task SaveSettingsAsync()
     {
+        return SaveSettingsAsync(CreatePresets());
+    }
+
+    private Task SaveSettingsAsync(IReadOnlyList<Preset> presets)
+    {
         AppSettings settings = new()
         {
-            Presets = Presets.Select(preset => preset.ToPreset()).ToList()
+            Presets = presets.ToList()
         };
 
         return _settingsStorage.SaveAsync(settings);
+    }
+
+    private List<Preset> CreatePresets()
+    {
+        return Presets.Select(preset => preset.ToPreset()).ToList();
+    }
+
+    private List<string> RefreshHotkeyRegistrations(IReadOnlyList<Preset> presets)
+    {
+        List<string> messages = [];
+        _hotkeyService.UnregisterAll();
+        HotkeyRegistrationResult commandPaletteResult = _hotkeyService.RegisterCommandPaletteHotkey(new HotkeyGesture
+        {
+            Key = "Space",
+            Ctrl = true,
+            Alt = true
+        });
+        AddRegistrationFailure(messages, commandPaletteResult, "Command palette");
+
+        HotkeyValidationResult validation = HotkeyValidator.ValidatePresets(presets);
+        foreach (Preset preset in presets)
+        {
+            if (preset.Hotkey is null || string.IsNullOrWhiteSpace(preset.Hotkey.Key))
+            {
+                continue;
+            }
+
+            if (validation.Errors.Any(error => error.PresetId == preset.Id))
+            {
+                continue;
+            }
+
+            HotkeyRegistrationResult result = _hotkeyService.RegisterPresetHotkey(preset.Id, preset.Name, preset.Hotkey);
+            AddRegistrationFailure(messages, result, string.IsNullOrWhiteSpace(preset.Name) ? "Unnamed preset" : preset.Name);
+        }
+
+        return messages;
+    }
+
+    private static void AddRegistrationFailure(
+        List<string> messages,
+        HotkeyRegistrationResult result,
+        string displayName)
+    {
+        if (result.Success)
+        {
+            return;
+        }
+
+        string conflict = string.IsNullOrWhiteSpace(result.ConflictingPresetName)
+            ? string.Empty
+            : $" Conflicts with {result.ConflictingPresetName}.";
+        messages.Add($"{displayName} hotkey not registered: {result.ErrorMessage}{conflict}");
+    }
+
+    private static string BuildStatusWithHotkeySummary(
+        string status,
+        IReadOnlyList<Preset> presets,
+        IReadOnlyList<string> registrationMessages)
+    {
+        if (registrationMessages.Count > 0)
+        {
+            return $"{status} {registrationMessages[0]}";
+        }
+
+        HotkeyValidationResult validation = HotkeyValidator.ValidatePresets(presets);
+        if (validation.Errors.Count > 0)
+        {
+            return $"{status} Hotkey issue: {validation.Errors[0].Message}";
+        }
+
+        if (validation.Warnings.Count > 0)
+        {
+            return $"{status} Hotkey warning: {validation.Warnings[0].Message}";
+        }
+
+        return status;
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)

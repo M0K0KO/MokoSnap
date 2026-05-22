@@ -23,7 +23,17 @@ public sealed class PresetRunnerService
         CloseWindowsResult? closeResult = null;
         if (preset.ClosePolicy == ClosePolicy.CloseVisibleWindowsOnly)
         {
-            closeResult = await CloseVisibleWindowsAsync(cancellationToken);
+            closeResult = await CloseVisibleWindowsAsync(preset, cancellationToken);
+            if (closeResult.Canceled)
+            {
+                return new PresetRunResult
+                {
+                    PresetId = preset.Id,
+                    PresetName = preset.Name,
+                    CloseWindowsResult = closeResult,
+                    Succeeded = false
+                };
+            }
         }
 
         List<TargetRunResult> targetResults = [];
@@ -47,11 +57,17 @@ public sealed class PresetRunnerService
         };
     }
 
-    private async Task<CloseWindowsResult> CloseVisibleWindowsAsync(CancellationToken cancellationToken)
+    private async Task<CloseWindowsResult> CloseVisibleWindowsAsync(Preset preset, CancellationToken cancellationToken)
     {
         try
         {
-            return await _visibleWindowCloser.CloseVisibleWindowsAsync(cancellationToken);
+            return await _visibleWindowCloser.CloseVisibleWindowsAsync(
+                new CloseWindowsRequest
+                {
+                    ConfirmBeforeClosing = preset.CloseConfirmationPolicy == CloseConfirmationPolicy.AlwaysConfirm,
+                    IncludeExplorer = false
+                },
+                cancellationToken);
         }
         catch (Exception ex)
         {

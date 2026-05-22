@@ -1,0 +1,53 @@
+<Window x:Class="MokoSnap.App.Views.CloseWindowsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Close Visible Windows"
+        Height="420"
+        Width="760"
+        WindowStartupLocation="CenterOwner">
+    <DockPanel Margin="16">
+        <TextBlock DockPanel.Dock="Top"
+                   Text="Close selected visible windows before running this preset."
+                   Margin="0,0,0,12" />
+
+        <StackPanel DockPanel.Dock="Bottom"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,12,0,0">
+            <Button Content="Close Selected"
+                    IsDefault="True"
+                    MinWidth="112"
+                    Margin="0,0,8,0"
+                    Click="OnCloseSelectedClicked" />
+            <Button Content="Cancel"
+                    IsCancel="True"
+                    MinWidth="88" />
+        </StackPanel>
+
+        <DataGrid x:Name="CandidateGrid"
+                  ItemsSource="{Binding Windows}"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  HeadersVisibility="Column"
+                  IsReadOnly="False"
+                  PreviewKeyDown="OnCandidateGridPreviewKeyDown">
+            <DataGrid.Columns>
+                <DataGridCheckBoxColumn Header="Close"
+                                        Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <DataGridTextColumn Header="Window"
+                                    Binding="{Binding WindowTitle}"
+                                    IsReadOnly="True"
+                                    Width="2*" />
+                <DataGridTextColumn Header="Process"
+                                    Binding="{Binding ProcessName}"
+                                    IsReadOnly="True"
+                                    Width="*" />
+                <DataGridTextColumn Header="Executable"
+                                    Binding="{Binding ExecutablePath}"
+                                    IsReadOnly="True"
+                                    Width="2*" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</Window>
