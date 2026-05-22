@@ -21,5 +21,6 @@ public class AppSettingsDefaultsTests
         Assert.True(settings.MinimizeToTray);
         Assert.False(settings.StartMinimizedToTray);
         Assert.False(settings.LaunchOnStartup);
+        Assert.False(settings.HasSeenFirstRunOnboarding);
     }
 }

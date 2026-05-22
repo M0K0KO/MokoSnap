@@ -49,6 +49,7 @@ public partial class MainWindow : Window
         }
 
         ShowMainWindow();
+        await viewModel.ShowFirstRunOnboardingIfNeededAsync(false);
     }
 
     protected override void OnSourceInitialized(EventArgs e)
@@ -80,7 +81,8 @@ public partial class MainWindow : Window
             new SettingsDialogService(
                 this,
                 chromeNativeHostSetupDialogService,
-                chromeNativeHostSetupService));
+                chromeNativeHostSetupService),
+            new OnboardingDialogService(this));
     }
 
     protected override void OnClosed(EventArgs e)

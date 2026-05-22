@@ -35,6 +35,10 @@
                     Margin="0,0,8,0" />
             <Button Content="Settings"
                     Command="{Binding OpenSettingsCommand}"
+                    MinWidth="88"
+                    Margin="0,0,8,0" />
+            <Button Content="Help / Getting Started"
+                    Command="{Binding OpenGettingStartedCommand}"
                     MinWidth="88" />
         </StackPanel>
 

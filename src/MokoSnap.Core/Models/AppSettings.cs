@@ -10,6 +10,8 @@ public sealed class AppSettings
 
     public bool MinimizeToTray { get; set; } = true;
 
+    public bool HasSeenFirstRunOnboarding { get; set; }
+
     public HotkeyGesture? QuickSwitcherHotkey { get; set; } = new()
     {
         Key = "M",

@@ -6,6 +6,7 @@ using MokoSnap.Core.Capture;
 using MokoSnap.Core.ChromeCapture;
 using MokoSnap.Core.Hotkeys;
 using MokoSnap.Core.Models;
+using MokoSnap.Core.Onboarding;
 using MokoSnap.Core.Running;
 using MokoSnap.Core.Storage;
 using MokoSnap.Core.Startup;
@@ -24,6 +25,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private readonly ICommandPaletteService _commandPaletteService;
     private readonly IStartupRegistrationService _startupRegistrationService;
     private readonly ISettingsDialogService _settingsDialogService;
+    private readonly IOnboardingDialogService _onboardingDialogService;
     private PresetEditorViewModel? _selectedPreset;
     private string _statusMessage = string.Empty;
     private string _runResultMessage = string.Empty;
@@ -31,6 +33,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private bool _launchOnStartup;
     private bool _startMinimizedToTray;
     private bool _minimizeToTray = true;
+    private bool _hasSeenFirstRunOnboarding;
     private HotkeyGesture _quickSwitcherHotkey = QuickSwitcherHotkeyDefaults.CreateDefault();
     private List<string> _lastHotkeyMessages = [];
 
@@ -44,7 +47,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
         IHotkeyService hotkeyService,
         ICommandPaletteService commandPaletteService,
         IStartupRegistrationService startupRegistrationService,
-        ISettingsDialogService settingsDialogService)
+        ISettingsDialogService settingsDialogService,
+        IOnboardingDialogService onboardingDialogService)
     {
         _settingsStorage = settingsStorage;
         _confirmationService = confirmationService;
@@ -56,6 +60,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         _commandPaletteService = commandPaletteService;
         _startupRegistrationService = startupRegistrationService;
         _settingsDialogService = settingsDialogService;
+        _onboardingDialogService = onboardingDialogService;
         _hotkeyService.HotkeyPressed += OnHotkeyPressed;
         LoadCommand = new AsyncRelayCommand(LoadAsync);
         AddCommand = new AsyncRelayCommand(AddAsync);
@@ -66,6 +71,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         ChromeCaptureSetupCommand = new RelayCommand(OpenChromeCaptureSetup);
         SaveStartupSettingsCommand = new AsyncRelayCommand(SaveStartupSettingsAsync);
         OpenSettingsCommand = new AsyncRelayCommand(OpenSettingsAsync);
+        OpenGettingStartedCommand = new AsyncRelayCommand(OpenGettingStartedAsync);
         RunCommand = new AsyncRelayCommand(RunAsync, () => SelectedPreset is not null && !IsRunning);
     }
 
@@ -94,6 +100,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public AsyncRelayCommand SaveStartupSettingsCommand { get; }
 
     public AsyncRelayCommand OpenSettingsCommand { get; }
+
+    public AsyncRelayCommand OpenGettingStartedCommand { get; }
 
     public AsyncRelayCommand RunCommand { get; }
 
@@ -196,6 +204,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         LaunchOnStartup = settings.LaunchOnStartup || registeredForStartup;
         StartMinimizedToTray = settings.StartMinimizedToTray;
         MinimizeToTray = settings.MinimizeToTray;
+        _hasSeenFirstRunOnboarding = settings.HasSeenFirstRunOnboarding;
         bool quickSwitcherHotkeyMigrated = QuickSwitcherHotkeyDefaults.ShouldUseDefault(settings.QuickSwitcherHotkey);
         _quickSwitcherHotkey = QuickSwitcherHotkeyDefaults.Resolve(settings.QuickSwitcherHotkey);
         if (LaunchOnStartup)
@@ -394,6 +403,18 @@ public sealed class MainViewModel : INotifyPropertyChanged
         return result is null ? Task.CompletedTask : ApplySettingsAsync(result);
     }
 
+    public Task OpenGettingStartedAsync()
+    {
+        return ShowOnboardingAsync();
+    }
+
+    public Task ShowFirstRunOnboardingIfNeededAsync(bool startsMinimizedToTray)
+    {
+        return FirstRunOnboardingState.ShouldShow(_hasSeenFirstRunOnboarding, startsMinimizedToTray)
+            ? ShowOnboardingAsync()
+            : Task.CompletedTask;
+    }
+
     public async Task RunPresetByIdAsync(string presetId)
     {
         PresetEditorViewModel? preset = Presets.FirstOrDefault(item => item.Id == presetId);
@@ -510,6 +531,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
             LaunchOnStartup = LaunchOnStartup,
             StartMinimizedToTray = StartMinimizedToTray,
             MinimizeToTray = MinimizeToTray,
+            HasSeenFirstRunOnboarding = _hasSeenFirstRunOnboarding,
             QuickSwitcherHotkey = _quickSwitcherHotkey,
             Presets = presets.ToList()
         };
@@ -588,6 +610,31 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
         await SaveSettingsAsync(presets);
         StatusMessage = BuildStatusWithHotkeySummary("Settings saved.", presets, hotkeyMessages);
+    }
+
+    private async Task ShowOnboardingAsync()
+    {
+        OnboardingDialogAction action = _onboardingDialogService.ShowOnboarding();
+        if (action == OnboardingDialogAction.None)
+        {
+            return;
+        }
+
+        if (!_hasSeenFirstRunOnboarding)
+        {
+            _hasSeenFirstRunOnboarding = true;
+            await SaveSettingsAsync();
+        }
+
+        switch (action)
+        {
+            case OnboardingDialogAction.OpenSettings:
+                await OpenSettingsAsync();
+                break;
+            case OnboardingDialogAction.OpenChromeCaptureSetup:
+                OpenChromeCaptureSetup();
+                break;
+        }
     }
 
     private List<Preset> CreatePresets()

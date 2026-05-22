@@ -175,6 +175,7 @@ public class JsonSerializationTests
     {
         AppSettings settings = new()
         {
+            HasSeenFirstRunOnboarding = true,
             QuickSwitcherHotkey = HotkeyGestureFormatter.Parse("Ctrl+Shift+K")
         };
 
@@ -184,7 +185,27 @@ public class JsonSerializationTests
             FileJsonStorage<AppSettings>.CreateJsonSerializerOptions());
 
         Assert.NotNull(roundTripped);
+        Assert.True(roundTripped.HasSeenFirstRunOnboarding);
         Assert.NotNull(roundTripped.QuickSwitcherHotkey);
         Assert.Equal("Ctrl+Shift+K", HotkeyGestureFormatter.Format(roundTripped.QuickSwitcherHotkey));
+    }
+
+    [Fact]
+    public void AppSettingsWithoutFirstRunOnboardingFieldLoadsSafely()
+    {
+        const string json = """
+        {
+          "version": "1",
+          "minimizeToTray": true,
+          "presets": []
+        }
+        """;
+
+        AppSettings? settings = JsonSerializer.Deserialize<AppSettings>(
+            json,
+            FileJsonStorage<AppSettings>.CreateJsonSerializerOptions());
+
+        Assert.NotNull(settings);
+        Assert.False(settings.HasSeenFirstRunOnboarding);
     }
 }
