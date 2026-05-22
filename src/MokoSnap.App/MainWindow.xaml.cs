@@ -63,6 +63,7 @@ public partial class MainWindow : Window
         ChromeNativeHostSetupDialogService chromeNativeHostSetupDialogService = new(
             this,
             chromeNativeHostSetupService);
+        ChromeCaptureDiagnosticsService chromeCaptureDiagnosticsService = new(chromeNativeHostSetupService);
 
         DataContext = new MainViewModel(
             MokoSnapStoragePaths.CreateAppSettingsStorage(),
@@ -82,7 +83,8 @@ public partial class MainWindow : Window
                 this,
                 chromeNativeHostSetupDialogService,
                 chromeNativeHostSetupService),
-            new OnboardingDialogService(this));
+            new OnboardingDialogService(this),
+            chromeCaptureDiagnosticsService);
     }
 
     protected override void OnClosed(EventArgs e)
@@ -171,6 +173,10 @@ public partial class MainWindow : Window
     public void ActivateFromExternalLaunch()
     {
         ShowMainWindow();
+        if (DataContext is MainViewModel viewModel)
+        {
+            viewModel.NoteActivationRequest();
+        }
     }
 
     private void ExitFromTray()

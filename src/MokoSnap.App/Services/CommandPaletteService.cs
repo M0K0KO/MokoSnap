@@ -18,9 +18,13 @@ public sealed class CommandPaletteService : ICommandPaletteService
         CommandPaletteViewModel viewModel = new(presets);
         CommandPaletteWindow window = new()
         {
-            Owner = _owner,
-            DataContext = viewModel
+            DataContext = viewModel,
+            WindowStartupLocation = _owner.IsVisible ? WindowStartupLocation.CenterOwner : WindowStartupLocation.CenterScreen
         };
+        if (_owner.IsVisible)
+        {
+            window.Owner = _owner;
+        }
 
         bool? result = window.ShowDialog();
         if (result != true || viewModel.SelectedItem is null)

@@ -4,8 +4,8 @@ namespace MokoSnap.App;
 
 public partial class App : System.Windows.Application
 {
-    private const string SingleInstanceMutexName = @"Local\MokoSnap.SingleInstance";
-    private const string ActivationEventName = @"Local\MokoSnap.ActivateExistingInstance";
+    private const string SingleInstanceId = "MokoSnap.SingleInstance";
+    private const string ActivationEventName = SingleInstanceId + ".Activate";
     private Mutex? _singleInstanceMutex;
     private EventWaitHandle? _activationEvent;
     private CancellationTokenSource? _activationListenerCts;
@@ -45,7 +45,7 @@ public partial class App : System.Windows.Application
 
     private bool TryClaimSingleInstance()
     {
-        _singleInstanceMutex = new Mutex(true, SingleInstanceMutexName, out bool createdNew);
+        _singleInstanceMutex = new Mutex(true, SingleInstanceId, out bool createdNew);
         _ownsSingleInstanceMutex = createdNew;
         if (createdNew)
         {

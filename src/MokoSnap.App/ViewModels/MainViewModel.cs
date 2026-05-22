@@ -26,9 +26,15 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private readonly IStartupRegistrationService _startupRegistrationService;
     private readonly ISettingsDialogService _settingsDialogService;
     private readonly IOnboardingDialogService _onboardingDialogService;
+    private readonly IChromeCaptureDiagnosticsService _chromeCaptureDiagnosticsService;
     private PresetEditorViewModel? _selectedPreset;
     private string _statusMessage = string.Empty;
     private string _runResultMessage = string.Empty;
+    private string _selectedShellSection = ShellSectionPresets;
+    private string _quickSwitcherHotkeyStatus = "Not registered yet.";
+    private string _singleInstanceStatus = "Active primary instance.";
+    private string _chromeCaptureStatus = string.Empty;
+    private string _diagnosticsText = string.Empty;
     private bool _isRunning;
     private bool _launchOnStartup;
     private bool _startMinimizedToTray;
@@ -49,7 +55,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
         ICommandPaletteService commandPaletteService,
         IStartupRegistrationService startupRegistrationService,
         ISettingsDialogService settingsDialogService,
-        IOnboardingDialogService onboardingDialogService)
+        IOnboardingDialogService onboardingDialogService,
+        IChromeCaptureDiagnosticsService chromeCaptureDiagnosticsService)
     {
         _settingsStorage = settingsStorage;
         _confirmationService = confirmationService;
@@ -62,6 +69,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         _startupRegistrationService = startupRegistrationService;
         _settingsDialogService = settingsDialogService;
         _onboardingDialogService = onboardingDialogService;
+        _chromeCaptureDiagnosticsService = chromeCaptureDiagnosticsService;
         _hotkeyService.HotkeyPressed += OnHotkeyPressed;
         LoadCommand = new AsyncRelayCommand(LoadAsync);
         AddCommand = new AsyncRelayCommand(AddAsync);
@@ -73,8 +81,18 @@ public sealed class MainViewModel : INotifyPropertyChanged
         SaveStartupSettingsCommand = new AsyncRelayCommand(SaveStartupSettingsAsync);
         OpenSettingsCommand = new AsyncRelayCommand(OpenSettingsAsync);
         OpenGettingStartedCommand = new AsyncRelayCommand(OpenGettingStartedAsync);
+        ShowPresetsSectionCommand = new RelayCommand(() => SelectedShellSection = ShellSectionPresets);
+        ShowSettingsSectionCommand = new RelayCommand(() => SelectedShellSection = ShellSectionSettings);
+        ShowChromeCaptureSectionCommand = new RelayCommand(() => SelectedShellSection = ShellSectionChromeCapture);
+        ShowHelpSectionCommand = new RelayCommand(() => SelectedShellSection = ShellSectionHelp);
         RunCommand = new AsyncRelayCommand(RunAsync, () => SelectedPreset is not null && !IsRunning);
+        RefreshDiagnostics();
     }
+
+    private const string ShellSectionPresets = "Presets";
+    private const string ShellSectionSettings = "Settings";
+    private const string ShellSectionChromeCapture = "Chrome Capture";
+    private const string ShellSectionHelp = "Help";
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -104,7 +122,68 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     public AsyncRelayCommand OpenGettingStartedCommand { get; }
 
+    public RelayCommand ShowPresetsSectionCommand { get; }
+
+    public RelayCommand ShowSettingsSectionCommand { get; }
+
+    public RelayCommand ShowChromeCaptureSectionCommand { get; }
+
+    public RelayCommand ShowHelpSectionCommand { get; }
+
     public AsyncRelayCommand RunCommand { get; }
+
+    public string SelectedShellSection
+    {
+        get => _selectedShellSection;
+        set
+        {
+            if (!SetField(ref _selectedShellSection, value))
+            {
+                return;
+            }
+
+            OnPropertyChanged(nameof(IsPresetsSectionSelected));
+            OnPropertyChanged(nameof(IsSettingsSectionSelected));
+            OnPropertyChanged(nameof(IsChromeCaptureSectionSelected));
+            OnPropertyChanged(nameof(IsHelpSectionSelected));
+        }
+    }
+
+    public bool IsPresetsSectionSelected => SelectedShellSection == ShellSectionPresets;
+
+    public bool IsSettingsSectionSelected => SelectedShellSection == ShellSectionSettings;
+
+    public bool IsChromeCaptureSectionSelected => SelectedShellSection == ShellSectionChromeCapture;
+
+    public bool IsHelpSectionSelected => SelectedShellSection == ShellSectionHelp;
+
+    public string QuickSwitcherHotkeySummary => HotkeyGestureFormatter.Format(_quickSwitcherHotkey);
+
+    public string QuickSwitcherHotkeyStatus
+    {
+        get => _quickSwitcherHotkeyStatus;
+        private set => SetField(ref _quickSwitcherHotkeyStatus, value);
+    }
+
+    public string SingleInstanceStatus
+    {
+        get => _singleInstanceStatus;
+        private set => SetField(ref _singleInstanceStatus, value);
+    }
+
+    public string TrayStatus => "Running.";
+
+    public string ChromeCaptureStatus
+    {
+        get => _chromeCaptureStatus;
+        private set => SetField(ref _chromeCaptureStatus, value);
+    }
+
+    public string DiagnosticsText
+    {
+        get => _diagnosticsText;
+        private set => SetField(ref _diagnosticsText, value);
+    }
 
     public PresetEditorViewModel? SelectedPreset
     {
@@ -260,6 +339,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         StatusMessage = !string.IsNullOrWhiteSpace(loadWarning)
             ? loadWarning
             : string.IsNullOrWhiteSpace(migrationWarning) ? loadedStatus : migrationWarning;
+        RefreshDiagnostics();
     }
 
     private async Task AddAsync()
@@ -279,6 +359,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
         List<string> hotkeyMessages = RefreshHotkeyRegistrations(presets);
         StatusMessage = BuildStatusWithHotkeySummary("Preset added.", presets, hotkeyMessages);
+        RefreshDiagnostics();
     }
 
     private async Task SaveAsync()
@@ -303,6 +384,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
         List<string> hotkeyMessages = RefreshHotkeyRegistrations(presets);
         StatusMessage = BuildStatusWithHotkeySummary("Preset saved.", presets, hotkeyMessages);
+        RefreshDiagnostics();
     }
 
     private async Task DeleteAsync()
@@ -330,6 +412,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
         List<string> hotkeyMessages = RefreshHotkeyRegistrations(presets);
         StatusMessage = BuildStatusWithHotkeySummary("Preset deleted.", presets, hotkeyMessages);
+        RefreshDiagnostics();
     }
 
     private async Task CaptureCurrentAppsAsync()
@@ -358,6 +441,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
             $"Captured {selectedApps.Count} app target(s).",
             presets,
             hotkeyMessages);
+        RefreshDiagnostics();
     }
 
     private async Task ImportLatestChromeTabsAsync()
@@ -388,11 +472,13 @@ public sealed class MainViewModel : INotifyPropertyChanged
             $"Imported {chromeTarget.Urls.Count} Chrome tab(s).",
             presets,
             hotkeyMessages);
+        RefreshDiagnostics();
     }
 
     private void OpenChromeCaptureSetup()
     {
         _chromeNativeHostSetupDialogService.ShowSetupDialog();
+        RefreshDiagnostics();
     }
 
     private async Task SaveStartupSettingsAsync()
@@ -408,10 +494,12 @@ public sealed class MainViewModel : INotifyPropertyChanged
             StatusMessage = LaunchOnStartup
                 ? "Startup registration saved for current user."
                 : "Startup registration disabled for current user.";
+            RefreshDiagnostics();
         }
         catch (Exception ex)
         {
             StatusMessage = $"Startup registration failed: {ex.Message}";
+            RefreshDiagnostics();
         }
     }
 
@@ -445,8 +533,17 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     public Task OpenSettingsAsync()
     {
-        SettingsDialogResult? result = _settingsDialogService.ShowSettings(CreateSettingsDialogRequest());
-        return result is null ? Task.CompletedTask : ApplySettingsAsync(result);
+        try
+        {
+            SettingsDialogResult? result = _settingsDialogService.ShowSettings(CreateSettingsDialogRequest());
+            return result is null ? Task.CompletedTask : ApplySettingsAsync(result);
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Settings failed to open: {ex.Message}";
+            RefreshDiagnostics();
+            return Task.CompletedTask;
+        }
     }
 
     public Task OpenGettingStartedAsync()
@@ -471,6 +568,13 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
         SelectedPreset = preset;
         await RunPresetAsync(preset);
+    }
+
+    public void NoteActivationRequest()
+    {
+        SingleInstanceStatus = "Active primary instance. Last second-launch activation request received.";
+        StatusMessage = "Existing MokoSnap instance activated.";
+        RefreshDiagnostics();
     }
 
     private async void OnHotkeyPressed(object? sender, HotkeyPressedEventArgs e)
@@ -507,11 +611,13 @@ public sealed class MainViewModel : INotifyPropertyChanged
             StatusMessage = result.CloseWindowsResult?.Canceled == true
                 ? "Preset run canceled."
                 : result.Succeeded ? "Preset run completed." : "Preset run completed with failures.";
+            RefreshDiagnostics();
         }
         catch (Exception ex)
         {
             RunResultMessage = $"Preset run failed: {ex.Message}";
             StatusMessage = "Preset run failed.";
+            RefreshDiagnostics();
         }
         finally
         {
@@ -609,6 +715,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException or InvalidOperationException)
         {
             StatusMessage = $"{failurePrefix} {ex.Message}";
+            RefreshDiagnostics();
             return false;
         }
     }
@@ -688,6 +795,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
         }
 
         StatusMessage = BuildStatusWithHotkeySummary("Settings saved.", presets, hotkeyMessages);
+        OnPropertyChanged(nameof(QuickSwitcherHotkeySummary));
+        RefreshDiagnostics();
     }
 
     private async Task ShowOnboardingAsync()
@@ -756,7 +865,41 @@ public sealed class MainViewModel : INotifyPropertyChanged
         }
 
         _lastHotkeyMessages = messages.ToList();
+        QuickSwitcherHotkeyStatus = BuildQuickSwitcherHotkeyStatus(quickSwitcherValidation, messages);
         return messages;
+    }
+
+    private void RefreshDiagnostics()
+    {
+        ChromeCaptureStatus = _chromeCaptureDiagnosticsService.GetStatusText();
+        DiagnosticsText = string.Join(
+            Environment.NewLine,
+            [
+                $"Quick Switcher hotkey: {QuickSwitcherHotkeySummary} - {QuickSwitcherHotkeyStatus}",
+                $"Single instance: {SingleInstanceStatus}",
+                $"Tray: {TrayStatus}",
+                ChromeCaptureStatus,
+                $"Last operation: {(string.IsNullOrWhiteSpace(StatusMessage) ? "None." : StatusMessage)}"
+            ]);
+    }
+
+    private static string BuildQuickSwitcherHotkeyStatus(
+        HotkeyValidationResult quickSwitcherValidation,
+        IReadOnlyList<string> registrationMessages)
+    {
+        if (quickSwitcherValidation.Errors.Count > 0)
+        {
+            return $"failed: {quickSwitcherValidation.Errors[0].Message}";
+        }
+
+        string? registrationFailure = registrationMessages.FirstOrDefault(message =>
+            message.StartsWith("Quick Switcher hotkey not registered:", StringComparison.OrdinalIgnoreCase));
+        if (!string.IsNullOrWhiteSpace(registrationFailure))
+        {
+            return $"failed: {registrationFailure}";
+        }
+
+        return "registered.";
     }
 
     private static HotkeyGesture CloneHotkey(HotkeyGesture hotkey)

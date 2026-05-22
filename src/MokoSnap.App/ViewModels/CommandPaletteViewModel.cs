@@ -79,8 +79,7 @@ public sealed class CommandPaletteViewModel : INotifyPropertyChanged
     {
         string query = SearchText.Trim();
         List<CommandPaletteItemViewModel> matches = [];
-        if (string.IsNullOrWhiteSpace(query) ||
-            "settings".Contains(query, StringComparison.OrdinalIgnoreCase))
+        if (MatchesSettingsCommand(query))
         {
             matches.Add(CommandPaletteItemViewModel.OpenSettings());
         }
@@ -103,6 +102,14 @@ public sealed class CommandPaletteViewModel : INotifyPropertyChanged
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    private static bool MatchesSettingsCommand(string query)
+    {
+        return string.IsNullOrWhiteSpace(query) ||
+            "settings".Contains(query, StringComparison.OrdinalIgnoreCase) ||
+            "config".Contains(query, StringComparison.OrdinalIgnoreCase) ||
+            "preferences".Contains(query, StringComparison.OrdinalIgnoreCase);
     }
 }
 
