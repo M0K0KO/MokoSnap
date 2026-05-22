@@ -150,7 +150,7 @@ public sealed class ChromeNativeHostSetupService
 
         if (!status.NativeHostExeExists)
         {
-            status.Errors.Add("MokoSnap.NativeHost.exe was not found. Publish or build MokoSnap.NativeHost first.");
+            status.Errors.Add("MokoSnap.NativeHost.exe was not found. Run publish-local.ps1 or build MokoSnap.NativeHost, then open Chrome Capture Setup again.");
         }
 
         if (!status.ManifestFileExists)
@@ -173,7 +173,12 @@ public sealed class ChromeNativeHostSetupService
 
         if (!status.LatestCaptureFileExists)
         {
-            status.Warnings.Add("No latest Chrome capture file exists yet.");
+            status.Warnings.Add("No latest Chrome capture file exists yet. Capture tabs from the Chrome extension before importing.");
+        }
+
+        if (status.RegistryKeyExists && status.RegistryValuePointsToExpectedManifest)
+        {
+            status.Warnings.Add("Restart Chrome after native host registration or manifest changes before capturing tabs.");
         }
     }
 

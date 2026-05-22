@@ -42,7 +42,9 @@ public sealed class SettingsDialogService : ISettingsDialogService
         try
         {
             ChromeNativeHostSetupStatus status = _chromeSetupService.CheckStatus(new ChromeNativeHostSetupRequest());
-            string latestCapture = status.LatestCaptureFileExists ? "exists" : "missing";
+            string latestCapture = status.LatestCaptureFileExists
+                ? $"exists: {status.LatestCapturePath}"
+                : $"missing. Capture tabs from the Chrome extension first. Expected file: {status.LatestCapturePath}";
             string nativeHost = status.ManifestFileExists &&
                 status.ManifestJsonValid &&
                 status.RegistryKeyExists &&

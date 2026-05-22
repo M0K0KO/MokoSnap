@@ -28,16 +28,19 @@ public sealed class ChromeTabCaptureStorage
                 cancellationToken);
 
             return capture is null
-                ? ChromeTabCaptureLoadResult.Invalid("Chrome capture file is empty or invalid.")
+                ? ChromeTabCaptureLoadResult.Invalid(
+                    $"Chrome capture file is empty or invalid JSON. Capture tabs again from the MokoSnap Chrome extension. File: {FilePath}")
                 : ChromeTabCaptureLoadResult.Success(capture);
         }
         catch (JsonException ex)
         {
-            return ChromeTabCaptureLoadResult.Invalid($"Chrome capture file is invalid: {ex.Message}");
+            return ChromeTabCaptureLoadResult.Invalid(
+                $"Chrome capture file is invalid JSON. Capture tabs again from the MokoSnap Chrome extension. File: {FilePath}. {ex.Message}");
         }
         catch (IOException ex)
         {
-            return ChromeTabCaptureLoadResult.Invalid($"Chrome capture file could not be read: {ex.Message}");
+            return ChromeTabCaptureLoadResult.Invalid(
+                $"Chrome capture file could not be read. File: {FilePath}. {ex.Message}");
         }
     }
 }
@@ -72,7 +75,7 @@ public sealed class ChromeTabCaptureLoadResult
         return new ChromeTabCaptureLoadResult(
             null,
             ChromeTabCaptureLoadStatus.Missing,
-            $"No Chrome tab capture was found. Use the MokoSnap Chrome extension to capture tabs first. Expected file: {path}");
+            $"No Chrome tab capture file was found. Use the MokoSnap Chrome extension to capture tabs first, then import again. Expected file: {path}");
     }
 
     public static ChromeTabCaptureLoadResult Invalid(string message)

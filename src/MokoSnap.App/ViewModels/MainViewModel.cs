@@ -34,6 +34,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private bool _startMinimizedToTray;
     private bool _minimizeToTray = true;
     private bool _hasSeenFirstRunOnboarding;
+    private bool _settingsCanBeSaved = true;
     private HotkeyGesture _quickSwitcherHotkey = QuickSwitcherHotkeyDefaults.CreateDefault();
     private List<string> _lastHotkeyMessages = [];
 
@@ -190,7 +191,21 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     public async Task LoadAsync()
     {
-        AppSettings settings = await _settingsStorage.LoadAsync();
+        AppSettings settings;
+        string loadWarning = string.Empty;
+        try
+        {
+            settings = await _settingsStorage.LoadAsync();
+            _settingsCanBeSaved = true;
+        }
+        catch (Exception ex) when (ex is System.IO.IOException or System.Text.Json.JsonException or UnauthorizedAccessException)
+        {
+            settings = AppSettings.CreateDefault();
+            _settingsCanBeSaved = false;
+            loadWarning =
+                $"Settings could not be loaded. Using in-memory defaults and blocking saves to avoid overwriting existing data. {ex.Message}";
+        }
+
         bool registeredForStartup = false;
         try
         {
@@ -207,6 +222,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         _hasSeenFirstRunOnboarding = settings.HasSeenFirstRunOnboarding;
         bool quickSwitcherHotkeyMigrated = QuickSwitcherHotkeyDefaults.ShouldUseDefault(settings.QuickSwitcherHotkey);
         _quickSwitcherHotkey = QuickSwitcherHotkeyDefaults.Resolve(settings.QuickSwitcherHotkey);
+        string migrationWarning = string.Empty;
         if (LaunchOnStartup)
         {
             try
@@ -222,7 +238,10 @@ public sealed class MainViewModel : INotifyPropertyChanged
         if (quickSwitcherHotkeyMigrated)
         {
             settings.QuickSwitcherHotkey = _quickSwitcherHotkey;
-            await _settingsStorage.SaveAsync(settings);
+            if (!await TrySaveSettingsAsync("Quick Switcher hotkey migration was not saved.", settings.Presets))
+            {
+                migrationWarning = StatusMessage;
+            }
         }
 
         Presets.Clear();
@@ -234,10 +253,13 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
         SelectedPreset = Presets.FirstOrDefault();
         List<string> hotkeyMessages = RefreshHotkeyRegistrations(settings.Presets);
-        StatusMessage = BuildStatusWithHotkeySummary(
+        string loadedStatus = BuildStatusWithHotkeySummary(
             Presets.Count == 0 ? "No presets yet." : $"Loaded {Presets.Count} preset(s).",
             settings.Presets,
             hotkeyMessages);
+        StatusMessage = !string.IsNullOrWhiteSpace(loadWarning)
+            ? loadWarning
+            : string.IsNullOrWhiteSpace(migrationWarning) ? loadedStatus : migrationWarning;
     }
 
     private async Task AddAsync()
@@ -250,7 +272,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
         Presets.Add(preset);
         SelectedPreset = preset;
         List<Preset> presets = CreatePresets();
-        await SaveSettingsAsync(presets);
+        if (!await TrySaveSettingsAsync("Preset was not saved.", presets))
+        {
+            return;
+        }
+
         List<string> hotkeyMessages = RefreshHotkeyRegistrations(presets);
         StatusMessage = BuildStatusWithHotkeySummary("Preset added.", presets, hotkeyMessages);
     }
@@ -270,7 +296,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-        await SaveSettingsAsync(presets);
+        if (!await TrySaveSettingsAsync("Preset was not saved.", presets))
+        {
+            return;
+        }
+
         List<string> hotkeyMessages = RefreshHotkeyRegistrations(presets);
         StatusMessage = BuildStatusWithHotkeySummary("Preset saved.", presets, hotkeyMessages);
     }
@@ -293,7 +323,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
         SelectedPreset = Presets.Count == 0 ? null : Presets[Math.Min(index, Presets.Count - 1)];
 
         List<Preset> presets = CreatePresets();
-        await SaveSettingsAsync(presets);
+        if (!await TrySaveSettingsAsync("Preset deletion was not saved.", presets))
+        {
+            return;
+        }
+
         List<string> hotkeyMessages = RefreshHotkeyRegistrations(presets);
         StatusMessage = BuildStatusWithHotkeySummary("Preset deleted.", presets, hotkeyMessages);
     }
@@ -314,7 +348,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
         SelectedPreset.AppendCapturedApps(selectedApps);
         List<Preset> presets = CreatePresets();
-        await SaveSettingsAsync(presets);
+        if (!await TrySaveSettingsAsync("Captured apps were not saved.", presets))
+        {
+            return;
+        }
+
         List<string> hotkeyMessages = RefreshHotkeyRegistrations(presets);
         StatusMessage = BuildStatusWithHotkeySummary(
             $"Captured {selectedApps.Count} app target(s).",
@@ -340,7 +378,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
         TargetConfig chromeTarget = ChromeTabCaptureImporter.CreateChromeTarget(selectionResult.SelectedTabs);
         SelectedPreset.AppendChromeTarget(chromeTarget);
         List<Preset> presets = CreatePresets();
-        await SaveSettingsAsync(presets);
+        if (!await TrySaveSettingsAsync("Chrome tabs were not saved.", presets))
+        {
+            return;
+        }
+
         List<string> hotkeyMessages = RefreshHotkeyRegistrations(presets);
         StatusMessage = BuildStatusWithHotkeySummary(
             $"Imported {chromeTarget.Urls.Count} Chrome tab(s).",
@@ -358,7 +400,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
         try
         {
             _startupRegistrationService.SetLaunchOnStartup(LaunchOnStartup, StartMinimizedToTray);
-            await SaveSettingsAsync();
+            if (!await TrySaveSettingsAsync("Startup settings were not saved."))
+            {
+                return;
+            }
+
             StatusMessage = LaunchOnStartup
                 ? "Startup registration saved for current user."
                 : "Startup registration disabled for current user.";
@@ -536,7 +582,35 @@ public sealed class MainViewModel : INotifyPropertyChanged
             Presets = presets.ToList()
         };
 
+        if (!_settingsCanBeSaved)
+        {
+            throw new InvalidOperationException(
+                "Settings were not saved because the existing settings file could not be loaded. Fix or rename appsettings.json, then restart MokoSnap.");
+        }
+
         return _settingsStorage.SaveAsync(settings);
+    }
+
+    private async Task<bool> TrySaveSettingsAsync(string failurePrefix, IReadOnlyList<Preset>? presets = null)
+    {
+        try
+        {
+            if (presets is null)
+            {
+                await SaveSettingsAsync();
+            }
+            else
+            {
+                await SaveSettingsAsync(presets);
+            }
+
+            return true;
+        }
+        catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException or InvalidOperationException)
+        {
+            StatusMessage = $"{failurePrefix} {ex.Message}";
+            return false;
+        }
     }
 
     private SettingsDialogRequest CreateSettingsDialogRequest()
@@ -608,7 +682,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-        await SaveSettingsAsync(presets);
+        if (!await TrySaveSettingsAsync("Settings were not saved.", presets))
+        {
+            return;
+        }
+
         StatusMessage = BuildStatusWithHotkeySummary("Settings saved.", presets, hotkeyMessages);
     }
 
@@ -623,7 +701,10 @@ public sealed class MainViewModel : INotifyPropertyChanged
         if (!_hasSeenFirstRunOnboarding)
         {
             _hasSeenFirstRunOnboarding = true;
-            await SaveSettingsAsync();
+            if (!await TrySaveSettingsAsync("Onboarding state was not saved."))
+            {
+                return;
+            }
         }
 
         switch (action)

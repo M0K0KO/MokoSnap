@@ -95,6 +95,7 @@ public class ChromeTabCaptureTests
 
         Assert.Equal(ChromeTabCaptureLoadStatus.Missing, result.Status);
         Assert.Contains("Chrome extension", result.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(path, result.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -109,7 +110,9 @@ public class ChromeTabCaptureTests
         ChromeTabCaptureLoadResult result = await storage.LoadLatestAsync();
 
         Assert.Equal(ChromeTabCaptureLoadStatus.Invalid, result.Status);
-        Assert.Contains("invalid", result.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("invalid JSON", result.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Capture tabs again", result.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(path, result.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     private static ChromeTabCapture CreateCapture()

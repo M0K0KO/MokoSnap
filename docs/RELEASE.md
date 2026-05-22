@@ -39,6 +39,23 @@ Run the published app by launching:
 ./artifacts/publish/MokoSnap/MokoSnap.App/MokoSnap.App.exe
 ```
 
+## Manual Smoke Checklist
+
+Before release, run this checklist against the local publish output:
+
+1. Run `./scripts/verify.ps1`.
+2. Run `./scripts/publish-local.ps1`.
+3. Launch the published app from `artifacts/publish/MokoSnap/MokoSnap.App/MokoSnap.App.exe`.
+4. Check tray behavior: minimize, restore from tray, and exit from tray.
+5. Check the Quick Switcher opens with `Ctrl+Alt+M`.
+6. Change the Quick Switcher hotkey in Settings and confirm the new hotkey works.
+7. Use `Capture Current Apps` and confirm captured targets are added.
+8. Run a preset and confirm target results are shown.
+9. Test `CloseVisibleWindowsOnly` with preview/cancel/confirm behavior.
+10. Open Chrome Capture Setup, register the native host if needed, restart Chrome, capture tabs, and import latest Chrome tabs.
+11. Reopen onboarding from `Help / Getting Started`.
+12. Toggle startup registration and confirm the HKCU Run value is added/removed.
+
 ## Installer
 
 Install Inno Setup 6 before building the installer:

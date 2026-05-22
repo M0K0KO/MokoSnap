@@ -55,22 +55,33 @@ public partial class App : System.Windows.Application
 
         _singleInstanceMutex.Dispose();
         _singleInstanceMutex = null;
-        SignalExistingInstance();
+        if (!SignalExistingInstance())
+        {
+            System.Windows.MessageBox.Show(
+                "MokoSnap is already running, but this launch could not signal the existing instance. Open MokoSnap from the tray icon.",
+                "MokoSnap Already Running",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+
         return false;
     }
 
-    private static void SignalExistingInstance()
+    private static bool SignalExistingInstance()
     {
         try
         {
             using EventWaitHandle activationEvent = EventWaitHandle.OpenExisting(ActivationEventName);
             activationEvent.Set();
+            return true;
         }
         catch (WaitHandleCannotBeOpenedException)
         {
+            return false;
         }
         catch (UnauthorizedAccessException)
         {
+            return false;
         }
     }
 

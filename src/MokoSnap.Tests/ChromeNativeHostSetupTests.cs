@@ -213,6 +213,48 @@ public class ChromeNativeHostSetupTests
         Assert.Contains(status.Errors, error => error.Contains("Extension ID", StringComparison.OrdinalIgnoreCase));
     }
 
+    [Fact]
+    public void MissingNativeHostErrorSuggestsPublishOrBuild()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        ChromeNativeHostSetupService service = new(
+            new FakeChromeNativeHostRegistry(),
+            Path.Combine(directory, "chrome-native-host-manifest.json"),
+            Path.Combine(directory, "chrome-tabs-latest.json"),
+            Path.Combine(directory, "missing-native-host.exe"));
+
+        ChromeNativeHostSetupStatus status = service.CheckStatus(new ChromeNativeHostSetupRequest
+        {
+            ExtensionId = "abcdefghijklmnopabcdefghijklmnop"
+        });
+
+        Assert.Contains(status.Errors, error => error.Contains("publish-local.ps1", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(status.Errors, error => error.Contains("build MokoSnap.NativeHost", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void RegisteredNativeHostStatusMentionsChromeRestart()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        string nativeHostPath = Path.Combine(directory, "MokoSnap.NativeHost.exe");
+        string manifestPath = Path.Combine(directory, "chrome-native-host-manifest.json");
+        File.WriteAllText(nativeHostPath, string.Empty);
+        ChromeNativeHostSetupService service = new(
+            new FakeChromeNativeHostRegistry(),
+            manifestPath,
+            Path.Combine(directory, "chrome-tabs-latest.json"),
+            nativeHostPath);
+
+        ChromeNativeHostSetupStatus status = service.Register(new ChromeNativeHostSetupRequest
+        {
+            ExtensionId = "abcdefghijklmnopabcdefghijklmnop"
+        });
+
+        Assert.Contains(status.Warnings, warning => warning.Contains("Restart Chrome", StringComparison.OrdinalIgnoreCase));
+    }
+
     private sealed class FakeChromeNativeHostRegistry : IChromeNativeHostRegistry
     {
         public string? RegisteredManifestPath { get; private set; }
