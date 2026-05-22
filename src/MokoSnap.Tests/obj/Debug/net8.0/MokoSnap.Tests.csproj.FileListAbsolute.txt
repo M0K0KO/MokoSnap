@@ -101,3 +101,5 @@ C:\PORTFOLIO\MokoSnap\src\MokoSnap.Tests\obj\Debug\net8.0\refint\MokoSnap.Tests.
 C:\PORTFOLIO\MokoSnap\src\MokoSnap.Tests\obj\Debug\net8.0\MokoSnap.Tests.pdb
 C:\PORTFOLIO\MokoSnap\src\MokoSnap.Tests\obj\Debug\net8.0\MokoSnap.Tests.genruntimeconfig.cache
 C:\PORTFOLIO\MokoSnap\src\MokoSnap.Tests\obj\Debug\net8.0\ref\MokoSnap.Tests.dll
+C:\PORTFOLIO\MokoSnap\src\MokoSnap.Tests\bin\Debug\net8.0\MokoSnap.Platform.Windows.dll
+C:\PORTFOLIO\MokoSnap\src\MokoSnap.Tests\bin\Debug\net8.0\MokoSnap.Platform.Windows.pdb

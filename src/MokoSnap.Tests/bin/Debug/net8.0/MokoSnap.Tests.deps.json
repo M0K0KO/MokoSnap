@@ -10,6 +10,7 @@
         "dependencies": {
           "Microsoft.NET.Test.Sdk": "17.8.0",
           "MokoSnap.Core": "1.0.0",
+          "MokoSnap.Platform.Windows": "1.0.0",
           "coverlet.collector": "6.0.0",
           "xunit": "2.5.3",
           "xunit.runner.visualstudio": "2.5.3"
@@ -1028,6 +1029,17 @@
             "fileVersion": "1.0.0.0"
           }
         }
+      },
+      "MokoSnap.Platform.Windows/1.0.0": {
+        "dependencies": {
+          "MokoSnap.Core": "1.0.0"
+        },
+        "runtime": {
+          "MokoSnap.Platform.Windows.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
       }
     }
   },
@@ -1661,6 +1673,11 @@
       "hashPath": "xunit.runner.visualstudio.2.5.3.nupkg.sha512"
     },
     "MokoSnap.Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "MokoSnap.Platform.Windows/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
