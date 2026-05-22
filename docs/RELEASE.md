@@ -1,6 +1,6 @@
 # MokoSnap Release Notes
 
-MokoSnap currently ships as a local publish folder. There is no MSI, MSIX, or installer yet.
+MokoSnap currently ships as a local publish folder and as a simple Inno Setup installer.
 
 ## Verify
 
@@ -39,6 +39,34 @@ Run the published app by launching:
 ./artifacts/publish/MokoSnap/MokoSnap.App/MokoSnap.App.exe
 ```
 
+## Installer
+
+Install Inno Setup 6 before building the installer:
+
+```text
+https://jrsoftware.org/isinfo.php
+```
+
+Build the installer:
+
+```powershell
+./scripts/build-installer.ps1
+```
+
+The installer build script runs `publish-local.ps1` before compiling the Inno Setup script.
+
+Installer output:
+
+```text
+artifacts/installer/MokoSnapSetup.exe
+```
+
+The installer uses a per-user install location and does not require admin rights:
+
+```text
+%LocalAppData%\Programs\MokoSnap
+```
+
 ## Chrome Capture After Publish
 
 1. Open `chrome://extensions`.
@@ -55,6 +83,12 @@ When MokoSnap runs from the publish folder, Chrome Capture Setup resolves the si
 
 ```text
 artifacts/publish/MokoSnap/MokoSnap.NativeHost/MokoSnap.NativeHost.exe
+```
+
+When MokoSnap runs from the installed folder, Chrome Capture Setup resolves the installed sibling native host:
+
+```text
+%LocalAppData%\Programs\MokoSnap\MokoSnap.NativeHost\MokoSnap.NativeHost.exe
 ```
 
 The native messaging registration is written under HKCU only:
@@ -81,7 +115,9 @@ The startup command uses the currently running `MokoSnap.App.exe`. When `Start m
 
 ## Known Limitations
 
-- No installer yet.
 - The Chrome extension is still loaded manually as an unpacked extension.
 - Chrome may need to be restarted after native host registration.
+- The installer does not automatically register the Chrome Native Host.
+- The installer does not install the Chrome extension.
 - The publish output is framework-dependent and requires the .NET 8 Desktop Runtime.
+- The installer is framework-dependent and requires the .NET 8 Desktop Runtime.

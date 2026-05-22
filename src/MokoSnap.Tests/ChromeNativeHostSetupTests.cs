@@ -73,6 +73,26 @@ public class ChromeNativeHostSetupTests
     }
 
     [Fact]
+    public void NativeHostPathResolverFindsInstalledSiblingNativeHost()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        string appBaseDirectory = Path.Combine(directory, "Programs", "MokoSnap", "MokoSnap.App");
+        string nativeHostPath = Path.Combine(
+            directory,
+            "Programs",
+            "MokoSnap",
+            "MokoSnap.NativeHost",
+            "MokoSnap.NativeHost.exe");
+        Directory.CreateDirectory(appBaseDirectory);
+        Directory.CreateDirectory(Path.GetDirectoryName(nativeHostPath)!);
+        File.WriteAllText(nativeHostPath, string.Empty);
+
+        string resolved = ChromeNativeHostPathResolver.Resolve(appBaseDirectory, null, File.Exists);
+
+        Assert.Equal(nativeHostPath, resolved);
+    }
+
+    [Fact]
     public void NativeHostPathResolverFindsDevelopmentReleaseBeforeDebug()
     {
         string directory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));

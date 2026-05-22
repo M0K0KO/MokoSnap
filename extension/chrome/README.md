@@ -47,3 +47,15 @@ Published setup:
 
 When MokoSnap runs from the publish folder, the generated manifest points to the sibling published native host:
 `artifacts/publish/MokoSnap/MokoSnap.NativeHost/MokoSnap.NativeHost.exe`
+
+Installed setup:
+
+1. Install MokoSnap with `artifacts/installer/MokoSnapSetup.exe`.
+2. Launch MokoSnap from the Start Menu.
+3. Open `Chrome Capture Setup`.
+4. Paste the unpacked extension ID.
+5. Click `Register Native Host`.
+6. Restart Chrome.
+
+When MokoSnap runs from the installed folder, the generated manifest points to the installed native host:
+`%LocalAppData%\Programs\MokoSnap\MokoSnap.NativeHost\MokoSnap.NativeHost.exe`
