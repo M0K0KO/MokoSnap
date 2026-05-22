@@ -32,7 +32,7 @@ public partial class CloseWindowsDialog : Window
         DialogFocusHelper.ActivateAndFocus(this, CandidateGrid);
     }
 
-    private void OnCandidateGridPreviewKeyDown(object sender, KeyEventArgs e)
+    private void OnCandidateGridPreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
         if (e.Key != Key.Space ||
             CandidateGrid.SelectedItem is not CloseWindowCandidateItemViewModel selectedWindow)
@@ -44,7 +44,7 @@ public partial class CloseWindowsDialog : Window
         e.Handled = true;
     }
 
-    private void OnPreviewKeyDown(object sender, KeyEventArgs e)
+    private void OnPreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
         if (e.Key == Key.Escape)
         {

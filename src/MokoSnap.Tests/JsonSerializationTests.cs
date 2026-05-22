@@ -1,4 +1,5 @@
 using System.Text.Json;
+using MokoSnap.Core.Hotkeys;
 using MokoSnap.Core.Models;
 using MokoSnap.Core.Storage;
 
@@ -137,5 +138,35 @@ public class JsonSerializationTests
         Assert.Equal(launchedAt, entry.LaunchedAt);
         Assert.True(entry.Succeeded);
         Assert.Equal("Launched", entry.Message);
+    }
+
+    [Fact]
+    public void AppSettingsRoundTripPreservesDigitHotkey()
+    {
+        AppSettings settings = new()
+        {
+            Presets =
+            [
+                new Preset
+                {
+                    Id = "gaming",
+                    Name = "Gaming",
+                    Hotkey = HotkeyGestureFormatter.Parse("Ctrl+Alt+1")
+                }
+            ]
+        };
+
+        string json = JsonSerializer.Serialize(settings, FileJsonStorage<AppSettings>.CreateJsonSerializerOptions());
+        AppSettings? roundTripped = JsonSerializer.Deserialize<AppSettings>(
+            json,
+            FileJsonStorage<AppSettings>.CreateJsonSerializerOptions());
+
+        Assert.NotNull(roundTripped);
+        Preset preset = Assert.Single(roundTripped.Presets);
+        Assert.NotNull(preset.Hotkey);
+        Assert.True(preset.Hotkey.Ctrl);
+        Assert.True(preset.Hotkey.Alt);
+        Assert.Equal("1", preset.Hotkey.Key);
+        Assert.Equal("Ctrl+Alt+1", HotkeyGestureFormatter.Format(preset.Hotkey));
     }
 }

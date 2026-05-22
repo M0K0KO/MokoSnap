@@ -22,6 +22,9 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private string _statusMessage = string.Empty;
     private string _runResultMessage = string.Empty;
     private bool _isRunning;
+    private bool _launchOnStartup;
+    private bool _startMinimizedToTray;
+    private bool _minimizeToTray = true;
 
     public MainViewModel(
         IJsonStorage<AppSettings> settingsStorage,
@@ -121,9 +124,42 @@ public sealed class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private async Task LoadAsync()
+    public bool LaunchOnStartup
+    {
+        get => _launchOnStartup;
+        private set
+        {
+            _launchOnStartup = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public bool StartMinimizedToTray
+    {
+        get => _startMinimizedToTray;
+        private set
+        {
+            _startMinimizedToTray = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public bool MinimizeToTray
+    {
+        get => _minimizeToTray;
+        private set
+        {
+            _minimizeToTray = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public async Task LoadAsync()
     {
         AppSettings settings = await _settingsStorage.LoadAsync();
+        LaunchOnStartup = settings.LaunchOnStartup;
+        StartMinimizedToTray = settings.StartMinimizedToTray;
+        MinimizeToTray = settings.MinimizeToTray;
         Presets.Clear();
 
         foreach (Preset preset in settings.Presets)
@@ -231,25 +267,41 @@ public sealed class MainViewModel : INotifyPropertyChanged
         await RunPresetAsync(SelectedPreset);
     }
 
+    public async Task OpenCommandPaletteAsync()
+    {
+        PresetEditorViewModel? selected = _commandPaletteService.SelectPreset(Presets.ToList());
+        if (selected is null)
+        {
+            return;
+        }
+
+        SelectedPreset = selected;
+        await RunPresetAsync(selected);
+    }
+
+    public async Task RunPresetByIdAsync(string presetId)
+    {
+        PresetEditorViewModel? preset = Presets.FirstOrDefault(item => item.Id == presetId);
+        if (preset is null)
+        {
+            return;
+        }
+
+        SelectedPreset = preset;
+        await RunPresetAsync(preset);
+    }
+
     private async void OnHotkeyPressed(object? sender, HotkeyPressedEventArgs e)
     {
         if (e.IsCommandPalette)
         {
-            PresetEditorViewModel? selected = _commandPaletteService.SelectPreset(Presets.ToList());
-            if (selected is not null)
-            {
-                SelectedPreset = selected;
-                await RunPresetAsync(selected);
-            }
-
+            await OpenCommandPaletteAsync();
             return;
         }
 
-        PresetEditorViewModel? preset = Presets.FirstOrDefault(item => item.Id == e.PresetId);
-        if (preset is not null)
+        if (e.PresetId is not null)
         {
-            SelectedPreset = preset;
-            await RunPresetAsync(preset);
+            await RunPresetByIdAsync(e.PresetId);
         }
     }
 
@@ -340,6 +392,9 @@ public sealed class MainViewModel : INotifyPropertyChanged
     {
         AppSettings settings = new()
         {
+            LaunchOnStartup = LaunchOnStartup,
+            StartMinimizedToTray = StartMinimizedToTray,
+            MinimizeToTray = MinimizeToTray,
             Presets = presets.ToList()
         };
 

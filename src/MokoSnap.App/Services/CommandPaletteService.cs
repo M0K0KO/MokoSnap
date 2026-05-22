@@ -23,6 +23,28 @@ public sealed class CommandPaletteService : ICommandPaletteService
         };
 
         bool? result = window.ShowDialog();
-        return result == true ? viewModel.SelectedPreset : null;
+        if (result != true || viewModel.SelectedItem is null)
+        {
+            return null;
+        }
+
+        if (viewModel.SelectedItem.OpensSettings)
+        {
+            ShowOwnerWindow();
+            return null;
+        }
+
+        return viewModel.SelectedItem.Preset;
+    }
+
+    private void ShowOwnerWindow()
+    {
+        _owner.Show();
+        if (_owner.WindowState == WindowState.Minimized)
+        {
+            _owner.WindowState = WindowState.Normal;
+        }
+
+        DialogFocusHelper.ActivateAndFocus(_owner, _owner);
     }
 }

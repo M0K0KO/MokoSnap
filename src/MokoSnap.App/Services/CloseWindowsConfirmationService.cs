@@ -14,7 +14,7 @@ public sealed class CloseWindowsConfirmationService : ICloseWindowsConfirmationS
 
         CloseWindowsDialog dialog = new(candidates)
         {
-            Owner = Application.Current.MainWindow
+            Owner = System.Windows.Application.Current.MainWindow
         };
 
         bool? result = dialog.ShowDialog();

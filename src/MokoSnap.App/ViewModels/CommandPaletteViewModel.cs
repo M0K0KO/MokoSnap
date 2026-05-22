@@ -8,7 +8,7 @@ public sealed class CommandPaletteViewModel : INotifyPropertyChanged
 {
     private readonly IReadOnlyList<PresetEditorViewModel> _presets;
     private string _searchText = string.Empty;
-    private PresetEditorViewModel? _selectedPreset;
+    private CommandPaletteItemViewModel? _selectedItem;
 
     public CommandPaletteViewModel(IReadOnlyList<PresetEditorViewModel> presets)
     {
@@ -18,7 +18,7 @@ public sealed class CommandPaletteViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public ObservableCollection<PresetEditorViewModel> FilteredPresets { get; } = [];
+    public ObservableCollection<CommandPaletteItemViewModel> FilteredItems { get; } = [];
 
     public string SearchText
     {
@@ -36,65 +36,98 @@ public sealed class CommandPaletteViewModel : INotifyPropertyChanged
         }
     }
 
-    public PresetEditorViewModel? SelectedPreset
+    public CommandPaletteItemViewModel? SelectedItem
     {
-        get => _selectedPreset;
+        get => _selectedItem;
         set
         {
-            if (_selectedPreset == value)
+            if (_selectedItem == value)
             {
                 return;
             }
 
-            _selectedPreset = value;
+            _selectedItem = value;
             OnPropertyChanged();
         }
     }
 
     public void SelectNext()
     {
-        if (FilteredPresets.Count == 0)
+        if (FilteredItems.Count == 0)
         {
-            SelectedPreset = null;
+            SelectedItem = null;
             return;
         }
 
-        int index = SelectedPreset is null ? -1 : FilteredPresets.IndexOf(SelectedPreset);
-        SelectedPreset = FilteredPresets[Math.Min(index + 1, FilteredPresets.Count - 1)];
+        int index = SelectedItem is null ? -1 : FilteredItems.IndexOf(SelectedItem);
+        SelectedItem = FilteredItems[Math.Min(index + 1, FilteredItems.Count - 1)];
     }
 
     public void SelectPrevious()
     {
-        if (FilteredPresets.Count == 0)
+        if (FilteredItems.Count == 0)
         {
-            SelectedPreset = null;
+            SelectedItem = null;
             return;
         }
 
-        int index = SelectedPreset is null ? FilteredPresets.Count : FilteredPresets.IndexOf(SelectedPreset);
-        SelectedPreset = FilteredPresets[Math.Max(index - 1, 0)];
+        int index = SelectedItem is null ? FilteredItems.Count : FilteredItems.IndexOf(SelectedItem);
+        SelectedItem = FilteredItems[Math.Max(index - 1, 0)];
     }
 
     private void RefreshFilteredPresets()
     {
         string query = SearchText.Trim();
-        List<PresetEditorViewModel> matches = _presets
+        List<CommandPaletteItemViewModel> matches = [];
+        if (string.IsNullOrWhiteSpace(query) ||
+            "presets".Contains(query, StringComparison.OrdinalIgnoreCase))
+        {
+            matches.Add(CommandPaletteItemViewModel.OpenSettings());
+        }
+
+        matches.AddRange(_presets
             .Where(preset => string.IsNullOrWhiteSpace(query) ||
                 preset.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
             .OrderBy(preset => preset.Name)
-            .ToList();
+            .Select(CommandPaletteItemViewModel.RunPreset));
 
-        FilteredPresets.Clear();
-        foreach (PresetEditorViewModel preset in matches)
+        FilteredItems.Clear();
+        foreach (CommandPaletteItemViewModel item in matches)
         {
-            FilteredPresets.Add(preset);
+            FilteredItems.Add(item);
         }
 
-        SelectedPreset = FilteredPresets.FirstOrDefault();
+        SelectedItem = FilteredItems.FirstOrDefault();
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+}
+
+public sealed class CommandPaletteItemViewModel
+{
+    private CommandPaletteItemViewModel(string name, PresetEditorViewModel? preset, bool opensSettings)
+    {
+        Name = name;
+        Preset = preset;
+        OpensSettings = opensSettings;
+    }
+
+    public string Name { get; }
+
+    public PresetEditorViewModel? Preset { get; }
+
+    public bool OpensSettings { get; }
+
+    public static CommandPaletteItemViewModel OpenSettings()
+    {
+        return new CommandPaletteItemViewModel("Presets", null, true);
+    }
+
+    public static CommandPaletteItemViewModel RunPreset(PresetEditorViewModel preset)
+    {
+        return new CommandPaletteItemViewModel(preset.Name, preset, false);
     }
 }

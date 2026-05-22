@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MokoSnap.Platform.Windows")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1cd00f0160e0b107cb1791faa1a63fb8c8954079")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1b2a661a00c5fe67ef790841678aac4a7cd6b469")]
 [assembly: System.Reflection.AssemblyProductAttribute("MokoSnap.Platform.Windows")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MokoSnap.Platform.Windows")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

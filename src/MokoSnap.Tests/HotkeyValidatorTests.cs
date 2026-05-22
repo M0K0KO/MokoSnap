@@ -76,10 +76,55 @@ public class HotkeyValidatorTests
     [InlineData("Ctrl+Alt+Space", "Ctrl+Alt+Space")]
     [InlineData("control + windows + w", "Ctrl+Win+W")]
     [InlineData("Alt+Esc", "Alt+Escape")]
+    [InlineData("Ctrl+Alt+1", "Ctrl+Alt+1")]
+    [InlineData("Ctrl+Alt+D1", "Ctrl+Alt+1")]
     public void ParserNormalizesHotkeyText(string input, string expected)
     {
         HotkeyGesture? gesture = HotkeyGestureFormatter.Parse(input);
 
         Assert.Equal(expected, HotkeyGestureFormatter.Format(gesture));
+    }
+
+    [Fact]
+    public void CtrlAltDigitHotkeyIsValid()
+    {
+        HotkeyGesture? gesture = HotkeyGestureFormatter.Parse("Ctrl+Alt+1");
+
+        HotkeyValidationResult result = HotkeyValidator.ValidateGesture(gesture);
+
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void PlainDigitHotkeyIsInvalid()
+    {
+        HotkeyGesture? gesture = HotkeyGestureFormatter.Parse("1");
+
+        HotkeyValidationResult result = HotkeyValidator.ValidateGesture(gesture);
+
+        Assert.False(result.IsValid);
+    }
+
+    [Fact]
+    public void DuplicateDetectionTreatsD1AndDigitOneAsSameHotkey()
+    {
+        Preset first = new()
+        {
+            Id = "first",
+            Name = "First",
+            Hotkey = HotkeyGestureFormatter.Parse("Ctrl+Alt+1")
+        };
+        Preset second = new()
+        {
+            Id = "second",
+            Name = "Second",
+            Hotkey = HotkeyGestureFormatter.Parse("Ctrl+Alt+D1")
+        };
+
+        HotkeyValidationResult result = HotkeyValidator.ValidatePresets([first, second]);
+
+        Assert.False(result.IsValid);
+        HotkeyValidationMessage duplicate = Assert.Single(result.Errors);
+        Assert.Equal("First", duplicate.ConflictingPresetName);
     }
 }

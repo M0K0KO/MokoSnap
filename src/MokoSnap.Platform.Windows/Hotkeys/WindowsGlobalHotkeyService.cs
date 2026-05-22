@@ -215,7 +215,17 @@ public sealed class WindowsGlobalHotkeyService : IHotkeyService
         ["Right"] = 0x27,
         ["Down"] = 0x28,
         ["Insert"] = 0x2D,
-        ["Delete"] = 0x2E
+        ["Delete"] = 0x2E,
+        ["NumPad0"] = 0x60,
+        ["NumPad1"] = 0x61,
+        ["NumPad2"] = 0x62,
+        ["NumPad3"] = 0x63,
+        ["NumPad4"] = 0x64,
+        ["NumPad5"] = 0x65,
+        ["NumPad6"] = 0x66,
+        ["NumPad7"] = 0x67,
+        ["NumPad8"] = 0x68,
+        ["NumPad9"] = 0x69
     };
 
     [DllImport("user32.dll", SetLastError = true)]

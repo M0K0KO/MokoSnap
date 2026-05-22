@@ -87,6 +87,13 @@ public static class HotkeyGestureFormatter
             return trimmed.ToUpperInvariant();
         }
 
+        if (trimmed.Length == 2 &&
+            (trimmed[0] == 'D' || trimmed[0] == 'd') &&
+            char.IsDigit(trimmed[1]))
+        {
+            return trimmed[1].ToString();
+        }
+
         return trimmed.Equals("Esc", StringComparison.OrdinalIgnoreCase)
             ? "Escape"
             : char.ToUpperInvariant(trimmed[0]) + trimmed[1..];

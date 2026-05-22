@@ -19,7 +19,7 @@ public partial class CommandPaletteWindow : Window
         DialogFocusHelper.ActivateAndFocus(this, SearchBox);
     }
 
-    private void OnPreviewKeyDown(object sender, KeyEventArgs e)
+    private void OnPreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
         if (DataContext is not CommandPaletteViewModel viewModel)
         {
@@ -31,7 +31,7 @@ public partial class CommandPaletteWindow : Window
             DialogResult = false;
             e.Handled = true;
         }
-        else if (e.Key == Key.Enter && viewModel.SelectedPreset is not null)
+        else if (e.Key == Key.Enter && viewModel.SelectedItem is not null)
         {
             DialogResult = true;
             e.Handled = true;
@@ -39,13 +39,13 @@ public partial class CommandPaletteWindow : Window
         else if (e.Key == Key.Down)
         {
             viewModel.SelectNext();
-            PresetList.ScrollIntoView(viewModel.SelectedPreset);
+            PresetList.ScrollIntoView(viewModel.SelectedItem);
             e.Handled = true;
         }
         else if (e.Key == Key.Up)
         {
             viewModel.SelectPrevious();
-            PresetList.ScrollIntoView(viewModel.SelectedPreset);
+            PresetList.ScrollIntoView(viewModel.SelectedItem);
             e.Handled = true;
         }
     }
