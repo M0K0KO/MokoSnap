@@ -5,8 +5,126 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="MokoSnap"
-        Height="450"
-        Width="800">
-    <Grid>
-    </Grid>
+        MinHeight="480"
+        MinWidth="760"
+        Height="520"
+        Width="860">
+    <DockPanel Margin="16">
+        <StackPanel DockPanel.Dock="Bottom"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,12,0,0">
+            <TextBlock Text="{Binding StatusMessage}"
+                       VerticalAlignment="Center"
+                       Margin="0,0,16,0" />
+            <Button Content="Add"
+                    Command="{Binding AddCommand}"
+                    MinWidth="88"
+                    Margin="0,0,8,0" />
+            <Button Content="Save"
+                    Command="{Binding SaveCommand}"
+                    MinWidth="88"
+                    Margin="0,0,8,0" />
+            <Button Content="Delete"
+                    Command="{Binding DeleteCommand}"
+                    MinWidth="88" />
+        </StackPanel>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="260" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <DockPanel Grid.Column="0">
+                <TextBlock DockPanel.Dock="Top"
+                           Text="Presets"
+                           FontSize="18"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,8" />
+                <ListBox ItemsSource="{Binding Presets}"
+                         SelectedItem="{Binding SelectedPreset, Mode=TwoWay}"
+                         DisplayMemberPath="Name" />
+            </DockPanel>
+
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0"
+                           Grid.ColumnSpan="2"
+                           Text="Preset Details"
+                           FontSize="18"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,16" />
+
+                <TextBlock Grid.Row="1"
+                           Grid.Column="0"
+                           Text="Name"
+                           VerticalAlignment="Center"
+                           Margin="0,0,12,10" />
+                <TextBox Grid.Row="1"
+                         Grid.Column="1"
+                         Text="{Binding SelectedPreset.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Margin="0,0,0,10" />
+
+                <TextBlock Grid.Row="2"
+                           Grid.Column="0"
+                           Text="Description"
+                           VerticalAlignment="Top"
+                           Margin="0,4,12,10" />
+                <TextBox Grid.Row="2"
+                         Grid.Column="1"
+                         Text="{Binding SelectedPreset.Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         AcceptsReturn="True"
+                         MinHeight="88"
+                         TextWrapping="Wrap"
+                         VerticalScrollBarVisibility="Auto"
+                         Margin="0,0,0,10" />
+
+                <TextBlock Grid.Row="3"
+                           Grid.Column="0"
+                           Text="Hotkey"
+                           VerticalAlignment="Center"
+                           Margin="0,0,12,10" />
+                <TextBox Grid.Row="3"
+                         Grid.Column="1"
+                         Text="{Binding SelectedPreset.HotkeyText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Margin="0,0,0,10" />
+
+                <TextBlock Grid.Row="4"
+                           Grid.Column="0"
+                           Text="Close policy"
+                           VerticalAlignment="Center"
+                           Margin="0,0,12,10" />
+                <ComboBox Grid.Row="4"
+                          Grid.Column="1"
+                          ItemsSource="{Binding ClosePolicies}"
+                          SelectedItem="{Binding SelectedPreset.ClosePolicy, Mode=TwoWay}"
+                          Margin="0,0,0,10" />
+
+                <TextBlock Grid.Row="5"
+                           Grid.Column="0"
+                           Text="Confirmation"
+                           VerticalAlignment="Top"
+                           Margin="0,4,12,0" />
+                <ComboBox Grid.Row="5"
+                          Grid.Column="1"
+                          ItemsSource="{Binding CloseConfirmationPolicies}"
+                          SelectedItem="{Binding SelectedPreset.CloseConfirmationPolicy, Mode=TwoWay}"
+                          VerticalAlignment="Top" />
+            </Grid>
+        </Grid>
+    </DockPanel>
 </Window>
