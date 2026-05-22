@@ -5,6 +5,7 @@ using System.Windows.Interop;
 using System.Windows.Input;
 using MokoSnap.App.Services;
 using MokoSnap.App.ViewModels;
+using MokoSnap.Core.ChromeCapture;
 using MokoSnap.Core.Running;
 using MokoSnap.Core.Storage;
 using MokoSnap.Platform.Windows.Closing;
@@ -60,6 +61,8 @@ public partial class MainWindow : Window
             MokoSnapStoragePaths.CreateAppSettingsStorage(),
             new MessageBoxConfirmationService(),
             new CapturedAppSelectionService(new WindowsVisibleAppCaptureService()),
+            new ChromeTabCaptureSelectionService(
+                new ChromeTabCaptureStorage(MokoSnapStoragePaths.ChromeTabsLatestPath)),
             new PresetRunnerService(
                 new WindowsTargetLauncher(),
                 new WindowsVisibleWindowCloser(new CloseWindowsConfirmationService()),

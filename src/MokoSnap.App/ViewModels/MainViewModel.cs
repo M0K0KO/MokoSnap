@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using MokoSnap.App.Services;
 using MokoSnap.Core.Capture;
+using MokoSnap.Core.ChromeCapture;
 using MokoSnap.Core.Hotkeys;
 using MokoSnap.Core.Models;
 using MokoSnap.Core.Running;
@@ -15,6 +16,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private readonly IJsonStorage<AppSettings> _settingsStorage;
     private readonly IConfirmationService _confirmationService;
     private readonly ICapturedAppSelectionService _capturedAppSelectionService;
+    private readonly IChromeTabCaptureSelectionService _chromeTabCaptureSelectionService;
     private readonly PresetRunnerService _presetRunnerService;
     private readonly IHotkeyService _hotkeyService;
     private readonly ICommandPaletteService _commandPaletteService;
@@ -30,6 +32,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         IJsonStorage<AppSettings> settingsStorage,
         IConfirmationService confirmationService,
         ICapturedAppSelectionService capturedAppSelectionService,
+        IChromeTabCaptureSelectionService chromeTabCaptureSelectionService,
         PresetRunnerService presetRunnerService,
         IHotkeyService hotkeyService,
         ICommandPaletteService commandPaletteService)
@@ -37,6 +40,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         _settingsStorage = settingsStorage;
         _confirmationService = confirmationService;
         _capturedAppSelectionService = capturedAppSelectionService;
+        _chromeTabCaptureSelectionService = chromeTabCaptureSelectionService;
         _presetRunnerService = presetRunnerService;
         _hotkeyService = hotkeyService;
         _commandPaletteService = commandPaletteService;
@@ -46,6 +50,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         SaveCommand = new AsyncRelayCommand(SaveAsync, () => SelectedPreset is not null);
         DeleteCommand = new AsyncRelayCommand(DeleteAsync, () => SelectedPreset is not null);
         CaptureCurrentAppsCommand = new AsyncRelayCommand(CaptureCurrentAppsAsync, () => SelectedPreset is not null);
+        ImportLatestChromeTabsCommand = new AsyncRelayCommand(ImportLatestChromeTabsAsync, () => SelectedPreset is not null);
         RunCommand = new AsyncRelayCommand(RunAsync, () => SelectedPreset is not null && !IsRunning);
     }
 
@@ -67,6 +72,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     public AsyncRelayCommand CaptureCurrentAppsCommand { get; }
 
+    public AsyncRelayCommand ImportLatestChromeTabsCommand { get; }
+
     public AsyncRelayCommand RunCommand { get; }
 
     public PresetEditorViewModel? SelectedPreset
@@ -84,6 +91,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
             SaveCommand.RaiseCanExecuteChanged();
             DeleteCommand.RaiseCanExecuteChanged();
             CaptureCurrentAppsCommand.RaiseCanExecuteChanged();
+            ImportLatestChromeTabsCommand.RaiseCanExecuteChanged();
             RunCommand.RaiseCanExecuteChanged();
         }
     }
@@ -253,6 +261,32 @@ public sealed class MainViewModel : INotifyPropertyChanged
         List<string> hotkeyMessages = RefreshHotkeyRegistrations(presets);
         StatusMessage = BuildStatusWithHotkeySummary(
             $"Captured {selectedApps.Count} app target(s).",
+            presets,
+            hotkeyMessages);
+    }
+
+    private async Task ImportLatestChromeTabsAsync()
+    {
+        if (SelectedPreset is null)
+        {
+            return;
+        }
+
+        ChromeTabCaptureSelectionResult selectionResult =
+            await _chromeTabCaptureSelectionService.SelectLatestCaptureAsync();
+        if (!selectionResult.Succeeded)
+        {
+            StatusMessage = selectionResult.Message;
+            return;
+        }
+
+        TargetConfig chromeTarget = ChromeTabCaptureImporter.CreateChromeTarget(selectionResult.SelectedTabs);
+        SelectedPreset.AppendChromeTarget(chromeTarget);
+        List<Preset> presets = CreatePresets();
+        await SaveSettingsAsync(presets);
+        List<string> hotkeyMessages = RefreshHotkeyRegistrations(presets);
+        StatusMessage = BuildStatusWithHotkeySummary(
+            $"Imported {chromeTarget.Urls.Count} Chrome tab(s).",
             presets,
             hotkeyMessages);
     }

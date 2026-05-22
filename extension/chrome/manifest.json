@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "MokoSnap Chrome Capture",
+  "version": "0.1.0",
+  "description": "Captures current Chrome tabs for MokoSnap presets.",
+  "permissions": [
+    "tabs",
+    "nativeMessaging"
+  ],
+  "action": {
+    "default_title": "Capture tabs for MokoSnap",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}

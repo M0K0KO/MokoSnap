@@ -1,0 +1,9 @@
+{
+  "name": "com.mokosnap.chrome_capture",
+  "description": "MokoSnap Chrome tab capture native host",
+  "path": "C:\\PORTFOLIO\\MokoSnap\\src\\MokoSnap.NativeHost\\bin\\Debug\\net8.0\\MokoSnap.NativeHost.exe",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://bbfikbengjhloaoobahdgdmfblmohdkd/"
+  ]
+}

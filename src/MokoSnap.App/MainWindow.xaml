@@ -181,7 +181,11 @@
                                         Margin="0,0,6,0" />
                                 <Button Content="Capture Current Apps"
                                         Command="{Binding CaptureCurrentAppsCommand}"
-                                        MinWidth="136" />
+                                        MinWidth="136"
+                                        Margin="0,0,6,0" />
+                                <Button Content="Import Latest Chrome Tabs"
+                                        Command="{Binding ImportLatestChromeTabsCommand}"
+                                        MinWidth="160" />
                             </WrapPanel>
                             <ListBox ItemsSource="{Binding SelectedPreset.Targets}"
                                      SelectedItem="{Binding SelectedPreset.SelectedTarget, Mode=TwoWay}"

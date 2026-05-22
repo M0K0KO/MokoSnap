@@ -15,6 +15,9 @@ public static class MokoSnapStoragePaths
     public static string LaunchHistoryPath { get; } =
         System.IO.Path.Combine(AppDataDirectory, "launch-history.json");
 
+    public static string ChromeTabsLatestPath { get; } =
+        System.IO.Path.Combine(AppDataDirectory, "chrome-tabs-latest.json");
+
     public static FileJsonStorage<AppSettings> CreateAppSettingsStorage()
     {
         return new FileJsonStorage<AppSettings>(AppSettingsPath, AppSettings.CreateDefault);

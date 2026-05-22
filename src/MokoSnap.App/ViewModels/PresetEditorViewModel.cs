@@ -124,6 +124,14 @@ public sealed class PresetEditorViewModel : INotifyPropertyChanged
         RaiseTargetCommandCanExecuteChanged();
     }
 
+    public void AppendChromeTarget(TargetConfig targetConfig)
+    {
+        TargetEditorViewModel target = new(targetConfig);
+        Targets.Add(target);
+        SelectedTarget = target;
+        RaiseTargetCommandCanExecuteChanged();
+    }
+
     private void AddTarget()
     {
         TargetEditorViewModel target = new(new TargetConfig
