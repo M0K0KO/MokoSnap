@@ -17,6 +17,10 @@
             <TextBlock Text="{Binding StatusMessage}"
                        VerticalAlignment="Center"
                        Margin="0,0,16,0" />
+            <Button Content="Run"
+                    Command="{Binding RunCommand}"
+                    MinWidth="88"
+                    Margin="0,0,8,0" />
             <Button Content="Add"
                     Command="{Binding AddCommand}"
                     MinWidth="88"
@@ -58,6 +62,7 @@
 
                     <Grid>
                         <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -123,6 +128,21 @@
                                   Grid.Column="1"
                                   ItemsSource="{Binding CloseConfirmationPolicies}"
                                   SelectedItem="{Binding SelectedPreset.CloseConfirmationPolicy, Mode=TwoWay}" />
+
+                        <TextBlock Grid.Row="5"
+                                   Grid.Column="0"
+                                   Text="Run result"
+                                   VerticalAlignment="Top"
+                                   Margin="0,16,12,0" />
+                        <TextBox Grid.Row="5"
+                                 Grid.Column="1"
+                                 Text="{Binding RunResultMessage, Mode=OneWay}"
+                                 IsReadOnly="True"
+                                 AcceptsReturn="True"
+                                 MinHeight="72"
+                                 TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Margin="0,16,0,0" />
                     </Grid>
 
                     <Separator Margin="0,20,0,16" />
@@ -140,9 +160,8 @@
                                        FontSize="18"
                                        FontWeight="SemiBold"
                                        Margin="0,0,0,8" />
-                            <StackPanel DockPanel.Dock="Bottom"
-                                        Orientation="Horizontal"
-                                        Margin="0,8,0,0">
+                            <WrapPanel DockPanel.Dock="Bottom"
+                                       Margin="0,8,0,0">
                                 <Button Content="Add"
                                         Command="{Binding SelectedPreset.AddTargetCommand}"
                                         MinWidth="56"
@@ -157,8 +176,12 @@
                                         Margin="0,0,6,0" />
                                 <Button Content="Down"
                                         Command="{Binding SelectedPreset.MoveTargetDownCommand}"
-                                        MinWidth="56" />
-                            </StackPanel>
+                                        MinWidth="56"
+                                        Margin="0,0,6,0" />
+                                <Button Content="Capture Current Apps"
+                                        Command="{Binding CaptureCurrentAppsCommand}"
+                                        MinWidth="136" />
+                            </WrapPanel>
                             <ListBox ItemsSource="{Binding SelectedPreset.Targets}"
                                      SelectedItem="{Binding SelectedPreset.SelectedTarget, Mode=TwoWay}"
                                      DisplayMemberPath="Summary"
@@ -236,6 +259,13 @@
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="150" />
@@ -248,6 +278,29 @@
                                     <TextBlock Grid.Row="2" Grid.Column="0" Text="Working directory" Margin="0,0,12,10" />
                                     <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding WorkingDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
                                     <CheckBox Grid.Row="3" Grid.Column="1" Content="Run as admin" IsChecked="{Binding RunAsAdmin, Mode=TwoWay}" Margin="0,0,0,10" />
+                                    <CheckBox Grid.Row="4" Grid.Column="1" Content="Remember window position" IsChecked="{Binding WindowPlacementEnabled, Mode=TwoWay}" Margin="0,0,0,10" />
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Captured placement" Margin="0,0,12,10" />
+                                    <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding WindowPlacementSummary}" Margin="0,0,0,10" />
+                                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Show state" Margin="0,0,12,10" />
+                                    <ComboBox Grid.Row="6" Grid.Column="1" ItemsSource="{Binding WindowPlacementShowStates}" SelectedItem="{Binding WindowPlacementShowState, Mode=TwoWay}" Margin="0,0,0,10" />
+                                    <TextBlock Grid.Row="7" Grid.Column="0" Text="Position" Margin="0,0,12,10" />
+                                    <StackPanel Grid.Row="7" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,10">
+                                        <TextBlock Text="Left" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                        <TextBox Text="{Binding WindowPlacementLeft, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="80" Margin="0,0,12,0" />
+                                        <TextBlock Text="Top" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                        <TextBox Text="{Binding WindowPlacementTop, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="80" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Row="8" Grid.Column="0" Text="Size" Margin="0,0,12,10" />
+                                    <StackPanel Grid.Row="8" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,10">
+                                        <TextBlock Text="Width" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                        <TextBox Text="{Binding WindowPlacementWidth, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="80" Margin="0,0,12,0" />
+                                        <TextBlock Text="Height" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                        <TextBox Text="{Binding WindowPlacementHeight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="80" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Row="9" Grid.Column="0" Text="Monitor" Margin="0,0,12,10" />
+                                    <TextBox Grid.Row="9" Grid.Column="1" Text="{Binding WindowPlacementMonitorDeviceName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+                                    <TextBlock Grid.Row="10" Grid.Column="0" Text="Probably snapped" Margin="0,0,12,10" />
+                                    <CheckBox Grid.Row="10" Grid.Column="1" IsChecked="{Binding WindowPlacementWasProbablySnapped, Mode=OneWay}" IsEnabled="False" Margin="0,0,0,10" />
                                 </Grid>
                             </StackPanel>
 

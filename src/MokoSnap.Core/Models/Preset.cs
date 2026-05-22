@@ -33,6 +33,8 @@ public sealed class TargetConfig
 
     public bool RunAsAdmin { get; set; }
 
+    public WindowPlacementSnapshot? WindowPlacement { get; set; }
+
     public string ProfileName { get; set; } = string.Empty;
 
     public bool OpenInNewWindow { get; set; }

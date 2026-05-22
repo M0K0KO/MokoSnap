@@ -135,6 +135,20 @@ The capture UX should list tabs from all Chrome windows and let the user select 
 Notion targets should prefer opening in the Notion desktop app, but must gracefully fall back to opening the page URL through the system shell if desktop open fails.
 
 
+\## Window Placement Rule
+
+MokoSnap may remember and restore window placement for Application targets.
+
+Placement means:
+- position
+- size
+- monitor
+- normal/maximized/minimized show state
+
+Do not claim to restore true Windows Snap Layout metadata. Restore the resulting window rectangle/state instead.
+
+Do not attempt to force app-internal fullscreen modes such as exclusive fullscreen games.
+
 
 \## Verification
 
@@ -147,4 +161,8 @@ Before claiming done, run:
 ```powershell
 
 ./scripts/verify.ps1
+
+
+
+
 

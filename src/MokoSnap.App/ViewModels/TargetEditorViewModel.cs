@@ -13,6 +13,7 @@ public sealed class TargetEditorViewModel : INotifyPropertyChanged
     private string _workingDirectory = string.Empty;
     private int _launchDelayMs;
     private bool _runAsAdmin;
+    private WindowPlacementSnapshot? _windowPlacement;
     private string _profileName = string.Empty;
     private bool _openInNewWindow;
     private string _urlsText = string.Empty;
@@ -30,6 +31,7 @@ public sealed class TargetEditorViewModel : INotifyPropertyChanged
         WorkingDirectory = target.WorkingDirectory;
         LaunchDelayMs = target.LaunchDelayMs;
         RunAsAdmin = target.RunAsAdmin;
+        _windowPlacement = target.WindowPlacement?.Clone();
         ProfileName = target.ProfileName;
         OpenInNewWindow = target.OpenInNewWindow;
         UrlsText = JoinLines(target.Urls);
@@ -102,6 +104,131 @@ public sealed class TargetEditorViewModel : INotifyPropertyChanged
         set => SetField(ref _runAsAdmin, value);
     }
 
+    public Array WindowPlacementShowStates { get; } = Enum.GetValues(typeof(WindowPlacementShowState));
+
+    public bool HasWindowPlacement => _windowPlacement is not null;
+
+    public bool WindowPlacementEnabled
+    {
+        get => _windowPlacement?.Enabled == true;
+        set
+        {
+            WindowPlacementSnapshot placement = EnsureWindowPlacement();
+            if (placement.Enabled == value)
+            {
+                return;
+            }
+
+            placement.Enabled = value;
+            OnWindowPlacementChanged(nameof(WindowPlacementEnabled));
+        }
+    }
+
+    public WindowPlacementShowState WindowPlacementShowState
+    {
+        get => _windowPlacement?.ShowState ?? WindowPlacementShowState.Normal;
+        set
+        {
+            WindowPlacementSnapshot placement = EnsureWindowPlacement();
+            if (placement.ShowState == value)
+            {
+                return;
+            }
+
+            placement.ShowState = value;
+            OnWindowPlacementChanged(nameof(WindowPlacementShowState));
+        }
+    }
+
+    public int WindowPlacementLeft
+    {
+        get => _windowPlacement?.Left ?? 0;
+        set
+        {
+            WindowPlacementSnapshot placement = EnsureWindowPlacement();
+            if (placement.Left == value)
+            {
+                return;
+            }
+
+            placement.Left = value;
+            OnWindowPlacementChanged(nameof(WindowPlacementLeft));
+        }
+    }
+
+    public int WindowPlacementTop
+    {
+        get => _windowPlacement?.Top ?? 0;
+        set
+        {
+            WindowPlacementSnapshot placement = EnsureWindowPlacement();
+            if (placement.Top == value)
+            {
+                return;
+            }
+
+            placement.Top = value;
+            OnWindowPlacementChanged(nameof(WindowPlacementTop));
+        }
+    }
+
+    public int WindowPlacementWidth
+    {
+        get => _windowPlacement?.Width ?? 0;
+        set
+        {
+            WindowPlacementSnapshot placement = EnsureWindowPlacement();
+            int width = Math.Max(1, value);
+            if (placement.Width == width)
+            {
+                return;
+            }
+
+            placement.Width = width;
+            OnWindowPlacementChanged(nameof(WindowPlacementWidth));
+        }
+    }
+
+    public int WindowPlacementHeight
+    {
+        get => _windowPlacement?.Height ?? 0;
+        set
+        {
+            WindowPlacementSnapshot placement = EnsureWindowPlacement();
+            int height = Math.Max(1, value);
+            if (placement.Height == height)
+            {
+                return;
+            }
+
+            placement.Height = height;
+            OnWindowPlacementChanged(nameof(WindowPlacementHeight));
+        }
+    }
+
+    public string WindowPlacementMonitorDeviceName
+    {
+        get => _windowPlacement?.MonitorDeviceName ?? string.Empty;
+        set
+        {
+            WindowPlacementSnapshot placement = EnsureWindowPlacement();
+            string monitorDeviceName = value.Trim();
+            if (placement.MonitorDeviceName == monitorDeviceName)
+            {
+                return;
+            }
+
+            placement.MonitorDeviceName = monitorDeviceName;
+            OnWindowPlacementChanged(nameof(WindowPlacementMonitorDeviceName));
+        }
+    }
+
+    public bool WindowPlacementWasProbablySnapped => _windowPlacement?.WasProbablySnapped == true;
+
+    public string WindowPlacementSummary => _windowPlacement is null
+        ? "No placement captured"
+        : $"{_windowPlacement.ShowState} {_windowPlacement.Left},{_windowPlacement.Top} {_windowPlacement.Width}x{_windowPlacement.Height}";
+
     public string ProfileName
     {
         get => _profileName;
@@ -165,6 +292,7 @@ public sealed class TargetEditorViewModel : INotifyPropertyChanged
             WorkingDirectory = WorkingDirectory.Trim(),
             LaunchDelayMs = Math.Max(0, LaunchDelayMs),
             RunAsAdmin = RunAsAdmin,
+            WindowPlacement = Type == TargetType.Application ? _windowPlacement?.Clone() : null,
             ProfileName = ProfileName.Trim(),
             OpenInNewWindow = OpenInNewWindow,
             Urls = SplitLines(UrlsText),
@@ -185,6 +313,32 @@ public sealed class TargetEditorViewModel : INotifyPropertyChanged
         return value
             .Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .ToList();
+    }
+
+    private WindowPlacementSnapshot EnsureWindowPlacement()
+    {
+        if (_windowPlacement is not null)
+        {
+            return _windowPlacement;
+        }
+
+        _windowPlacement = new WindowPlacementSnapshot
+        {
+            Enabled = true,
+            ShowState = WindowPlacementShowState.Normal,
+            Width = 800,
+            Height = 600
+        };
+        OnPropertyChanged(nameof(HasWindowPlacement));
+        OnPropertyChanged(nameof(WindowPlacementSummary));
+        return _windowPlacement;
+    }
+
+    private void OnWindowPlacementChanged(string propertyName)
+    {
+        OnPropertyChanged(propertyName);
+        OnPropertyChanged(nameof(HasWindowPlacement));
+        OnPropertyChanged(nameof(WindowPlacementSummary));
     }
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

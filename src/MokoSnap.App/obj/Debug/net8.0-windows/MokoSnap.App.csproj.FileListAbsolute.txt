@@ -24,3 +24,5 @@ C:\PORTFOLIO\MokoSnap\src\MokoSnap.App\obj\Debug\net8.0-windows\refint\MokoSnap.
 C:\PORTFOLIO\MokoSnap\src\MokoSnap.App\obj\Debug\net8.0-windows\MokoSnap.App.pdb
 C:\PORTFOLIO\MokoSnap\src\MokoSnap.App\obj\Debug\net8.0-windows\MokoSnap.App.genruntimeconfig.cache
 C:\PORTFOLIO\MokoSnap\src\MokoSnap.App\obj\Debug\net8.0-windows\ref\MokoSnap.App.dll
+C:\PORTFOLIO\MokoSnap\src\MokoSnap.App\obj\Debug\net8.0-windows\Views\CapturedAppsDialog.baml
+C:\PORTFOLIO\MokoSnap\src\MokoSnap.App\obj\Debug\net8.0-windows\Views\CapturedAppsDialog.g.cs

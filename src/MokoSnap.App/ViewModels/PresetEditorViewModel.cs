@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using MokoSnap.Core.Capture;
 using MokoSnap.Core.Models;
 
 namespace MokoSnap.App.ViewModels;
@@ -108,6 +109,18 @@ public sealed class PresetEditorViewModel : INotifyPropertyChanged
             CloseConfirmationPolicy = CloseConfirmationPolicy,
             Targets = Targets.Select(target => target.ToTarget()).ToList()
         };
+    }
+
+    public void AppendCapturedApps(IEnumerable<CapturedWindowApp> capturedApps)
+    {
+        foreach (CapturedWindowApp app in capturedApps.Where(app => app.IsAvailable))
+        {
+            TargetEditorViewModel target = new(app.ToApplicationTarget());
+            Targets.Add(target);
+            SelectedTarget = target;
+        }
+
+        RaiseTargetCommandCanExecuteChanged();
     }
 
     private void AddTarget()

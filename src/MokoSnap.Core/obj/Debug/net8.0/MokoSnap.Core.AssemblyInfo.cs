@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MokoSnap.Core")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9389c380f5ebbd3f01aafb9de8a95c50aace1c83")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1b5b51cb192dc08dcef19c1be7f957873d5ac02d")]
 [assembly: System.Reflection.AssemblyProductAttribute("MokoSnap.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MokoSnap.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

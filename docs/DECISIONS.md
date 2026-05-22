@@ -120,3 +120,15 @@ Reason:
 
 \- Power users can make hotkey switching fast.
 
+
+\## 007. Window Placement Memory
+
+MokoSnap remembers window position, size, monitor, and show state for captured Application targets.
+
+MokoSnap does not restore true Windows Snap Layout metadata. It restores the resulting rectangle/state after a window has been snapped or manually arranged.
+
+Reason:
+
+- Position/maximized state is accessible through Win32 APIs.
+- Windows Snap Layout metadata is not exposed as a stable public restore API.
+- Game fullscreen modes are app-internal and cannot be reliably restored externally.

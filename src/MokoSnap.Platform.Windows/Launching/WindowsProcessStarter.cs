@@ -4,7 +4,7 @@ namespace MokoSnap.Platform.Windows.Launching;
 
 public sealed class WindowsProcessStarter : IWindowsProcessStarter
 {
-    public void Start(WindowsLaunchCommand command)
+    public int? Start(WindowsLaunchCommand command)
     {
         ProcessStartInfo startInfo = new()
         {
@@ -34,6 +34,7 @@ public sealed class WindowsProcessStarter : IWindowsProcessStarter
             startInfo.Arguments = command.Arguments;
         }
 
-        Process.Start(startInfo);
+        using Process? process = Process.Start(startInfo);
+        return process?.Id;
     }
 }

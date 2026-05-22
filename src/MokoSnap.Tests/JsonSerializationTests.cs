@@ -31,7 +31,18 @@ public class JsonSerializationTests
                             Arguments = "--reuse-window",
                             WorkingDirectory = @"C:\Work",
                             LaunchDelayMs = 250,
-                            RunAsAdmin = false
+                            RunAsAdmin = false,
+                            WindowPlacement = new WindowPlacementSnapshot
+                            {
+                                Enabled = true,
+                                ShowState = WindowPlacementShowState.Maximized,
+                                Left = 10,
+                                Top = 20,
+                                Width = 1200,
+                                Height = 800,
+                                MonitorDeviceName = @"\\.\DISPLAY1",
+                                WasProbablySnapped = true
+                            }
                         },
                         new TargetConfig
                         {
@@ -81,7 +92,16 @@ public class JsonSerializationTests
         Assert.True(preset.Hotkey.Alt);
         Assert.Equal("W", preset.Hotkey.Key);
         Assert.Equal(5, preset.Targets.Count);
-        Assert.Contains(preset.Targets, target => target.Type == TargetType.Application);
+        TargetConfig applicationTarget = Assert.Single(preset.Targets, target => target.Type == TargetType.Application);
+        Assert.NotNull(applicationTarget.WindowPlacement);
+        Assert.True(applicationTarget.WindowPlacement.Enabled);
+        Assert.Equal(WindowPlacementShowState.Maximized, applicationTarget.WindowPlacement.ShowState);
+        Assert.Equal(10, applicationTarget.WindowPlacement.Left);
+        Assert.Equal(20, applicationTarget.WindowPlacement.Top);
+        Assert.Equal(1200, applicationTarget.WindowPlacement.Width);
+        Assert.Equal(800, applicationTarget.WindowPlacement.Height);
+        Assert.Equal(@"\\.\DISPLAY1", applicationTarget.WindowPlacement.MonitorDeviceName);
+        Assert.True(applicationTarget.WindowPlacement.WasProbablySnapped);
         Assert.Contains(preset.Targets, target => target.Type == TargetType.Chrome);
         Assert.Contains(preset.Targets, target => target.Type == TargetType.Notion);
         Assert.Contains(preset.Targets, target => target.Type == TargetType.Url);

@@ -1,0 +1,73 @@
+<Window x:Class="MokoSnap.App.Views.CapturedAppsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Capture Current Apps"
+        Height="480"
+        Width="760"
+        WindowStartupLocation="CenterOwner">
+    <DockPanel Margin="16">
+        <StackPanel DockPanel.Dock="Top"
+                    Orientation="Horizontal"
+                    Margin="0,0,0,12">
+            <CheckBox Content="Include Explorer windows"
+                      IsChecked="{Binding IncludeExplorer, Mode=TwoWay}"
+                      VerticalAlignment="Center"
+                      Margin="0,0,12,0" />
+            <Button Content="Refresh"
+                    Command="{Binding RefreshCommand}"
+                    MinWidth="88" />
+        </StackPanel>
+
+        <StackPanel DockPanel.Dock="Bottom"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,12,0,0">
+            <TextBlock Text="{Binding StatusMessage}"
+                       VerticalAlignment="Center"
+                       Margin="0,0,16,0" />
+            <Button Content="Add Selected"
+                    IsDefault="True"
+                    MinWidth="104"
+                    Margin="0,0,8,0"
+                    Click="OnAddSelectedClicked" />
+            <Button Content="Cancel"
+                    IsCancel="True"
+                    MinWidth="88" />
+        </StackPanel>
+
+        <DataGrid ItemsSource="{Binding Apps}"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  HeadersVisibility="Column"
+                  IsReadOnly="False">
+            <DataGrid.Columns>
+                <DataGridCheckBoxColumn Header="Add"
+                                        Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <DataGridCheckBoxColumn Header="Remember window position"
+                                        Binding="{Binding RememberWindowPlacement, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <DataGridTextColumn Header="Window"
+                                    Binding="{Binding Title}"
+                                    IsReadOnly="True"
+                                    Width="2*" />
+                <DataGridTextColumn Header="Process"
+                                    Binding="{Binding ProcessName}"
+                                    IsReadOnly="True"
+                                    Width="*" />
+                <DataGridTextColumn Header="Executable"
+                                    Binding="{Binding ExecutablePath}"
+                                    IsReadOnly="True"
+                                    Width="2*" />
+                <DataGridTextColumn Header="Placement"
+                                    Binding="{Binding PlacementSummary}"
+                                    IsReadOnly="True"
+                                    Width="*" />
+            </DataGrid.Columns>
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="IsEnabled" Value="{Binding IsEnabled}" />
+                </Style>
+            </DataGrid.RowStyle>
+        </DataGrid>
+    </DockPanel>
+</Window>
