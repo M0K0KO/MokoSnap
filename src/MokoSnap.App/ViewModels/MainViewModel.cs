@@ -23,6 +23,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private readonly IHotkeyService _hotkeyService;
     private readonly ICommandPaletteService _commandPaletteService;
     private readonly IStartupRegistrationService _startupRegistrationService;
+    private readonly ISettingsDialogService _settingsDialogService;
     private PresetEditorViewModel? _selectedPreset;
     private string _statusMessage = string.Empty;
     private string _runResultMessage = string.Empty;
@@ -31,6 +32,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private bool _startMinimizedToTray;
     private bool _minimizeToTray = true;
     private HotkeyGesture _quickSwitcherHotkey = QuickSwitcherHotkeyDefaults.CreateDefault();
+    private List<string> _lastHotkeyMessages = [];
 
     public MainViewModel(
         IJsonStorage<AppSettings> settingsStorage,
@@ -41,7 +43,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
         PresetRunnerService presetRunnerService,
         IHotkeyService hotkeyService,
         ICommandPaletteService commandPaletteService,
-        IStartupRegistrationService startupRegistrationService)
+        IStartupRegistrationService startupRegistrationService,
+        ISettingsDialogService settingsDialogService)
     {
         _settingsStorage = settingsStorage;
         _confirmationService = confirmationService;
@@ -52,6 +55,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         _hotkeyService = hotkeyService;
         _commandPaletteService = commandPaletteService;
         _startupRegistrationService = startupRegistrationService;
+        _settingsDialogService = settingsDialogService;
         _hotkeyService.HotkeyPressed += OnHotkeyPressed;
         LoadCommand = new AsyncRelayCommand(LoadAsync);
         AddCommand = new AsyncRelayCommand(AddAsync);
@@ -61,6 +65,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         ImportLatestChromeTabsCommand = new AsyncRelayCommand(ImportLatestChromeTabsAsync, () => SelectedPreset is not null);
         ChromeCaptureSetupCommand = new RelayCommand(OpenChromeCaptureSetup);
         SaveStartupSettingsCommand = new AsyncRelayCommand(SaveStartupSettingsAsync);
+        OpenSettingsCommand = new AsyncRelayCommand(OpenSettingsAsync);
         RunCommand = new AsyncRelayCommand(RunAsync, () => SelectedPreset is not null && !IsRunning);
     }
 
@@ -87,6 +92,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public RelayCommand ChromeCaptureSetupCommand { get; }
 
     public AsyncRelayCommand SaveStartupSettingsCommand { get; }
+
+    public AsyncRelayCommand OpenSettingsCommand { get; }
 
     public AsyncRelayCommand RunCommand { get; }
 
@@ -365,14 +372,26 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     public async Task OpenCommandPaletteAsync()
     {
-        PresetEditorViewModel? selected = _commandPaletteService.SelectPreset(Presets.ToList());
-        if (selected is null)
+        CommandPaletteSelection selection = _commandPaletteService.SelectPreset(Presets.ToList());
+        if (selection.OpensSettings)
+        {
+            await OpenSettingsAsync();
+            return;
+        }
+
+        if (selection.Preset is null)
         {
             return;
         }
 
-        SelectedPreset = selected;
-        await RunPresetAsync(selected);
+        SelectedPreset = selection.Preset;
+        await RunPresetAsync(selection.Preset);
+    }
+
+    public Task OpenSettingsAsync()
+    {
+        SettingsDialogResult? result = _settingsDialogService.ShowSettings(CreateSettingsDialogRequest());
+        return result is null ? Task.CompletedTask : ApplySettingsAsync(result);
     }
 
     public async Task RunPresetByIdAsync(string presetId)
@@ -498,6 +517,79 @@ public sealed class MainViewModel : INotifyPropertyChanged
         return _settingsStorage.SaveAsync(settings);
     }
 
+    private SettingsDialogRequest CreateSettingsDialogRequest()
+    {
+        string? registeredStartupCommand = null;
+        string expectedStartupCommand = string.Empty;
+        string startupStatusError = string.Empty;
+        try
+        {
+            registeredStartupCommand = _startupRegistrationService.GetRegisteredCommand();
+            expectedStartupCommand = _startupRegistrationService.GetExpectedCommand(StartMinimizedToTray);
+        }
+        catch (Exception ex)
+        {
+            startupStatusError = ex.Message;
+        }
+
+        return new SettingsDialogRequest
+        {
+            QuickSwitcherHotkey = CloneHotkey(_quickSwitcherHotkey),
+            LaunchOnStartup = LaunchOnStartup,
+            StartMinimizedToTray = StartMinimizedToTray,
+            MinimizeToTray = MinimizeToTray,
+            Presets = CreatePresets(),
+            RegisteredStartupCommand = registeredStartupCommand,
+            ExpectedStartupCommand = expectedStartupCommand,
+            StartupStatusError = startupStatusError,
+            HotkeyStatusText = string.Join(Environment.NewLine, _lastHotkeyMessages)
+        };
+    }
+
+    private async Task ApplySettingsAsync(SettingsDialogResult result)
+    {
+        HotkeyGesture previousQuickSwitcherHotkey = _quickSwitcherHotkey;
+        bool previousLaunchOnStartup = LaunchOnStartup;
+        bool previousStartMinimizedToTray = StartMinimizedToTray;
+        bool previousMinimizeToTray = MinimizeToTray;
+
+        _quickSwitcherHotkey = CloneHotkey(result.QuickSwitcherHotkey);
+        LaunchOnStartup = result.LaunchOnStartup;
+        StartMinimizedToTray = result.StartMinimizedToTray;
+        MinimizeToTray = result.MinimizeToTray;
+
+        List<Preset> presets = CreatePresets();
+        List<string> hotkeyMessages = RefreshHotkeyRegistrations(presets);
+        if (ContainsQuickSwitcherRegistrationFailure(hotkeyMessages))
+        {
+            _quickSwitcherHotkey = previousQuickSwitcherHotkey;
+            LaunchOnStartup = previousLaunchOnStartup;
+            StartMinimizedToTray = previousStartMinimizedToTray;
+            MinimizeToTray = previousMinimizeToTray;
+            RefreshHotkeyRegistrations(presets);
+            StatusMessage = $"Settings not saved. {hotkeyMessages[0]}";
+            return;
+        }
+
+        try
+        {
+            _startupRegistrationService.SetLaunchOnStartup(LaunchOnStartup, StartMinimizedToTray);
+        }
+        catch (Exception ex)
+        {
+            _quickSwitcherHotkey = previousQuickSwitcherHotkey;
+            LaunchOnStartup = previousLaunchOnStartup;
+            StartMinimizedToTray = previousStartMinimizedToTray;
+            MinimizeToTray = previousMinimizeToTray;
+            RefreshHotkeyRegistrations(presets);
+            StatusMessage = $"Settings not saved. Startup registration failed: {ex.Message}";
+            return;
+        }
+
+        await SaveSettingsAsync(presets);
+        StatusMessage = BuildStatusWithHotkeySummary("Settings saved.", presets, hotkeyMessages);
+    }
+
     private List<Preset> CreatePresets()
     {
         return Presets.Select(preset => preset.ToPreset()).ToList();
@@ -535,7 +627,27 @@ public sealed class MainViewModel : INotifyPropertyChanged
             AddRegistrationFailure(messages, result, string.IsNullOrWhiteSpace(preset.Name) ? "Unnamed preset" : preset.Name);
         }
 
+        _lastHotkeyMessages = messages.ToList();
         return messages;
+    }
+
+    private static HotkeyGesture CloneHotkey(HotkeyGesture hotkey)
+    {
+        return new HotkeyGesture
+        {
+            Key = hotkey.Key,
+            Ctrl = hotkey.Ctrl,
+            Alt = hotkey.Alt,
+            Shift = hotkey.Shift,
+            Windows = hotkey.Windows
+        };
+    }
+
+    private static bool ContainsQuickSwitcherRegistrationFailure(IReadOnlyList<string> messages)
+    {
+        return messages.Any(message => message.StartsWith(
+            "Quick Switcher hotkey not registered:",
+            StringComparison.OrdinalIgnoreCase));
     }
 
     private static void AddRegistrationFailure(

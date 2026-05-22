@@ -10,6 +10,7 @@ public sealed class TrayIconService : IDisposable
     private readonly Func<IReadOnlyList<PresetEditorViewModel>> _getPresets;
     private readonly Action _openMainWindow;
     private readonly Func<Task> _openQuickSwitcherAsync;
+    private readonly Func<Task> _openSettingsAsync;
     private readonly Func<string, Task> _runPresetAsync;
     private readonly Action _exit;
     private bool _disposed;
@@ -18,12 +19,14 @@ public sealed class TrayIconService : IDisposable
         Func<IReadOnlyList<PresetEditorViewModel>> getPresets,
         Action openMainWindow,
         Func<Task> openQuickSwitcherAsync,
+        Func<Task> openSettingsAsync,
         Func<string, Task> runPresetAsync,
         Action exit)
     {
         _getPresets = getPresets;
         _openMainWindow = openMainWindow;
         _openQuickSwitcherAsync = openQuickSwitcherAsync;
+        _openSettingsAsync = openSettingsAsync;
         _runPresetAsync = runPresetAsync;
         _exit = exit;
         _notifyIcon = new Forms.NotifyIcon
@@ -56,6 +59,7 @@ public sealed class TrayIconService : IDisposable
 
         menu.Items.Add(CreateMenuItem("Open MokoSnap", (_, _) => _openMainWindow()));
         menu.Items.Add(CreateMenuItem("Quick Switcher", async (_, _) => await _openQuickSwitcherAsync()));
+        menu.Items.Add(CreateMenuItem("Settings", async (_, _) => await _openSettingsAsync()));
         menu.Items.Add(new Forms.ToolStripSeparator());
 
         Forms.ToolStripMenuItem runPresetMenu = new("Run Preset");

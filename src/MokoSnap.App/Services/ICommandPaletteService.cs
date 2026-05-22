@@ -4,5 +4,12 @@ namespace MokoSnap.App.Services;
 
 public interface ICommandPaletteService
 {
-    PresetEditorViewModel? SelectPreset(IReadOnlyList<PresetEditorViewModel> presets);
+    CommandPaletteSelection SelectPreset(IReadOnlyList<PresetEditorViewModel> presets);
+}
+
+public sealed class CommandPaletteSelection
+{
+    public PresetEditorViewModel? Preset { get; init; }
+
+    public bool OpensSettings { get; init; }
 }

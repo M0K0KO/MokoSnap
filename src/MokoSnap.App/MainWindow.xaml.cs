@@ -58,6 +58,10 @@ public partial class MainWindow : Window
         _hotkeyService = new WindowsGlobalHotkeyService(windowHandle);
         _hwndSource = HwndSource.FromHwnd(windowHandle);
         _hwndSource?.AddHook(WndProc);
+        ChromeNativeHostSetupService chromeNativeHostSetupService = new();
+        ChromeNativeHostSetupDialogService chromeNativeHostSetupDialogService = new(
+            this,
+            chromeNativeHostSetupService);
 
         DataContext = new MainViewModel(
             MokoSnapStoragePaths.CreateAppSettingsStorage(),
@@ -65,16 +69,18 @@ public partial class MainWindow : Window
             new CapturedAppSelectionService(new WindowsVisibleAppCaptureService()),
             new ChromeTabCaptureSelectionService(
                 new ChromeTabCaptureStorage(MokoSnapStoragePaths.ChromeTabsLatestPath)),
-            new ChromeNativeHostSetupDialogService(
-                this,
-                new ChromeNativeHostSetupService()),
+            chromeNativeHostSetupDialogService,
             new PresetRunnerService(
                 new WindowsTargetLauncher(),
                 new WindowsVisibleWindowCloser(new CloseWindowsConfirmationService()),
                 new SystemLaunchDelay()),
             _hotkeyService,
             new CommandPaletteService(this),
-            new WindowsStartupRegistrationService());
+            new WindowsStartupRegistrationService(),
+            new SettingsDialogService(
+                this,
+                chromeNativeHostSetupDialogService,
+                chromeNativeHostSetupService));
     }
 
     protected override void OnClosed(EventArgs e)
@@ -87,7 +93,9 @@ public partial class MainWindow : Window
 
     protected override void OnClosing(CancelEventArgs e)
     {
-        if (!_isExplicitExit)
+        if (!_isExplicitExit &&
+            DataContext is MainViewModel viewModel &&
+            viewModel.MinimizeToTray)
         {
             e.Cancel = true;
             Hide();
@@ -120,68 +128,15 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (key is Key.LeftCtrl or Key.RightCtrl or Key.LeftAlt or Key.RightAlt or
-            Key.LeftShift or Key.RightShift or Key.LWin or Key.RWin)
+        if (WpfHotkeyRecorder.IsModifierKey(key))
         {
             e.Handled = true;
             return;
         }
 
-        List<string> parts = [];
-        if (modifiers.HasFlag(ModifierKeys.Control))
-        {
-            parts.Add("Ctrl");
-        }
-
-        if (modifiers.HasFlag(ModifierKeys.Alt))
-        {
-            parts.Add("Alt");
-        }
-
-        if (modifiers.HasFlag(ModifierKeys.Shift))
-        {
-            parts.Add("Shift");
-        }
-
-        if (modifiers.HasFlag(ModifierKeys.Windows))
-        {
-            parts.Add("Win");
-        }
-
-        parts.Add(FormatRecordedKey(key));
-        textBox.Text = string.Join("+", parts);
+        textBox.Text = WpfHotkeyRecorder.FormatRecordedHotkey(key, modifiers);
         textBox.GetBindingExpression(System.Windows.Controls.TextBox.TextProperty)?.UpdateSource();
         e.Handled = true;
-    }
-
-    private static string FormatRecordedKey(Key key)
-    {
-        return key switch
-        {
-            Key.Back => "Backspace",
-            Key.Return => "Enter",
-            Key.Escape => "Escape",
-            Key.Space => "Space",
-            Key.Prior => "PageUp",
-            Key.Next => "PageDown",
-            Key.Delete => "Delete",
-            Key.Insert => "Insert",
-            Key.D0 => "0",
-            Key.D1 => "1",
-            Key.D2 => "2",
-            Key.D3 => "3",
-            Key.D4 => "4",
-            Key.D5 => "5",
-            Key.D6 => "6",
-            Key.D7 => "7",
-            Key.D8 => "8",
-            Key.D9 => "9",
-            Key.Left => "Left",
-            Key.Up => "Up",
-            Key.Right => "Right",
-            Key.Down => "Down",
-            _ => key.ToString()
-        };
     }
 
     private void EnsureTrayIcon(MainViewModel viewModel)
@@ -195,6 +150,7 @@ public partial class MainWindow : Window
             () => viewModel.Presets.ToList(),
             ShowMainWindow,
             viewModel.OpenCommandPaletteAsync,
+            viewModel.OpenSettingsAsync,
             viewModel.RunPresetByIdAsync,
             ExitFromTray);
     }

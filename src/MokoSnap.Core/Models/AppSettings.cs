@@ -10,7 +10,12 @@ public sealed class AppSettings
 
     public bool MinimizeToTray { get; set; } = true;
 
-    public HotkeyGesture? QuickSwitcherHotkey { get; set; }
+    public HotkeyGesture? QuickSwitcherHotkey { get; set; } = new()
+    {
+        Key = "M",
+        Ctrl = true,
+        Alt = true
+    };
 
     public List<Preset> Presets { get; set; } = [];
 

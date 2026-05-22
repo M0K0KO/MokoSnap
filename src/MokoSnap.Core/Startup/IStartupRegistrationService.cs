@@ -6,5 +6,7 @@ public interface IStartupRegistrationService
 
     string? GetRegisteredCommand();
 
+    string GetExpectedCommand(bool startMinimized);
+
     void SetLaunchOnStartup(bool enabled, bool startMinimized);
 }

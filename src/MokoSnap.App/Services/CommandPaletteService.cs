@@ -13,7 +13,7 @@ public sealed class CommandPaletteService : ICommandPaletteService
         _owner = owner;
     }
 
-    public PresetEditorViewModel? SelectPreset(IReadOnlyList<PresetEditorViewModel> presets)
+    public CommandPaletteSelection SelectPreset(IReadOnlyList<PresetEditorViewModel> presets)
     {
         CommandPaletteViewModel viewModel = new(presets);
         CommandPaletteWindow window = new()
@@ -25,26 +25,14 @@ public sealed class CommandPaletteService : ICommandPaletteService
         bool? result = window.ShowDialog();
         if (result != true || viewModel.SelectedItem is null)
         {
-            return null;
+            return new CommandPaletteSelection();
         }
 
         if (viewModel.SelectedItem.OpensSettings)
         {
-            ShowOwnerWindow();
-            return null;
+            return new CommandPaletteSelection { OpensSettings = true };
         }
 
-        return viewModel.SelectedItem.Preset;
-    }
-
-    private void ShowOwnerWindow()
-    {
-        _owner.Show();
-        if (_owner.WindowState == WindowState.Minimized)
-        {
-            _owner.WindowState = WindowState.Normal;
-        }
-
-        DialogFocusHelper.ActivateAndFocus(_owner, _owner);
+        return new CommandPaletteSelection { Preset = viewModel.SelectedItem.Preset };
     }
 }

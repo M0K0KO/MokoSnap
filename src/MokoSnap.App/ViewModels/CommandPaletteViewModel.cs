@@ -80,7 +80,7 @@ public sealed class CommandPaletteViewModel : INotifyPropertyChanged
         string query = SearchText.Trim();
         List<CommandPaletteItemViewModel> matches = [];
         if (string.IsNullOrWhiteSpace(query) ||
-            "presets".Contains(query, StringComparison.OrdinalIgnoreCase))
+            "settings".Contains(query, StringComparison.OrdinalIgnoreCase))
         {
             matches.Add(CommandPaletteItemViewModel.OpenSettings());
         }
@@ -123,7 +123,7 @@ public sealed class CommandPaletteItemViewModel
 
     public static CommandPaletteItemViewModel OpenSettings()
     {
-        return new CommandPaletteItemViewModel("Presets", null, true);
+        return new CommandPaletteItemViewModel("Settings", null, true);
     }
 
     public static CommandPaletteItemViewModel RunPreset(PresetEditorViewModel preset)

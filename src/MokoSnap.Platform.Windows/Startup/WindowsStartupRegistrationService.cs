@@ -32,6 +32,11 @@ public sealed class WindowsStartupRegistrationService : IStartupRegistrationServ
 #pragma warning restore CA1416
     }
 
+    public string GetExpectedCommand(bool startMinimized)
+    {
+        return StartupCommand.Build(_executablePath, startMinimized);
+    }
+
     public void SetLaunchOnStartup(bool enabled, bool startMinimized)
     {
 #pragma warning disable CA1416
@@ -39,7 +44,7 @@ public sealed class WindowsStartupRegistrationService : IStartupRegistrationServ
             ?? throw new InvalidOperationException("Could not open the HKCU startup Run key.");
         if (enabled)
         {
-            key.SetValue(ValueName, StartupCommand.Build(_executablePath, startMinimized), RegistryValueKind.String);
+            key.SetValue(ValueName, GetExpectedCommand(startMinimized), RegistryValueKind.String);
             return;
         }
 
