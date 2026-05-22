@@ -5,10 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="MokoSnap"
-        MinHeight="480"
-        MinWidth="760"
-        Height="520"
-        Width="860">
+        MinHeight="640"
+        MinWidth="980"
+        Height="720"
+        Width="1120">
     <DockPanel Margin="16">
         <StackPanel DockPanel.Dock="Bottom"
                     Orientation="Horizontal"
@@ -48,83 +48,315 @@
                          DisplayMemberPath="Name" />
             </DockPanel>
 
-            <Grid Grid.Column="2">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="150" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
+            <ScrollViewer Grid.Column="2"
+                          VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <TextBlock Text="Preset Details"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               Margin="0,0,0,16" />
 
-                <TextBlock Grid.Row="0"
-                           Grid.ColumnSpan="2"
-                           Text="Preset Details"
-                           FontSize="18"
-                           FontWeight="SemiBold"
-                           Margin="0,0,0,16" />
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Row="1"
-                           Grid.Column="0"
-                           Text="Name"
-                           VerticalAlignment="Center"
-                           Margin="0,0,12,10" />
-                <TextBox Grid.Row="1"
-                         Grid.Column="1"
-                         Text="{Binding SelectedPreset.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         Margin="0,0,0,10" />
+                        <TextBlock Grid.Row="0"
+                                   Grid.Column="0"
+                                   Text="Name"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,12,10" />
+                        <TextBox Grid.Row="0"
+                                 Grid.Column="1"
+                                 Text="{Binding SelectedPreset.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 Margin="0,0,0,10" />
 
-                <TextBlock Grid.Row="2"
-                           Grid.Column="0"
-                           Text="Description"
-                           VerticalAlignment="Top"
-                           Margin="0,4,12,10" />
-                <TextBox Grid.Row="2"
-                         Grid.Column="1"
-                         Text="{Binding SelectedPreset.Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         AcceptsReturn="True"
-                         MinHeight="88"
-                         TextWrapping="Wrap"
-                         VerticalScrollBarVisibility="Auto"
-                         Margin="0,0,0,10" />
+                        <TextBlock Grid.Row="1"
+                                   Grid.Column="0"
+                                   Text="Description"
+                                   VerticalAlignment="Top"
+                                   Margin="0,4,12,10" />
+                        <TextBox Grid.Row="1"
+                                 Grid.Column="1"
+                                 Text="{Binding SelectedPreset.Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True"
+                                 MinHeight="72"
+                                 TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Margin="0,0,0,10" />
 
-                <TextBlock Grid.Row="3"
-                           Grid.Column="0"
-                           Text="Hotkey"
-                           VerticalAlignment="Center"
-                           Margin="0,0,12,10" />
-                <TextBox Grid.Row="3"
-                         Grid.Column="1"
-                         Text="{Binding SelectedPreset.HotkeyText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         Margin="0,0,0,10" />
+                        <TextBlock Grid.Row="2"
+                                   Grid.Column="0"
+                                   Text="Hotkey"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,12,10" />
+                        <TextBox Grid.Row="2"
+                                 Grid.Column="1"
+                                 Text="{Binding SelectedPreset.HotkeyText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 Margin="0,0,0,10" />
 
-                <TextBlock Grid.Row="4"
-                           Grid.Column="0"
-                           Text="Close policy"
-                           VerticalAlignment="Center"
-                           Margin="0,0,12,10" />
-                <ComboBox Grid.Row="4"
-                          Grid.Column="1"
-                          ItemsSource="{Binding ClosePolicies}"
-                          SelectedItem="{Binding SelectedPreset.ClosePolicy, Mode=TwoWay}"
-                          Margin="0,0,0,10" />
+                        <TextBlock Grid.Row="3"
+                                   Grid.Column="0"
+                                   Text="Close policy"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,12,10" />
+                        <ComboBox Grid.Row="3"
+                                  Grid.Column="1"
+                                  ItemsSource="{Binding ClosePolicies}"
+                                  SelectedItem="{Binding SelectedPreset.ClosePolicy, Mode=TwoWay}"
+                                  Margin="0,0,0,10" />
 
-                <TextBlock Grid.Row="5"
-                           Grid.Column="0"
-                           Text="Confirmation"
-                           VerticalAlignment="Top"
-                           Margin="0,4,12,0" />
-                <ComboBox Grid.Row="5"
-                          Grid.Column="1"
-                          ItemsSource="{Binding CloseConfirmationPolicies}"
-                          SelectedItem="{Binding SelectedPreset.CloseConfirmationPolicy, Mode=TwoWay}"
-                          VerticalAlignment="Top" />
-            </Grid>
+                        <TextBlock Grid.Row="4"
+                                   Grid.Column="0"
+                                   Text="Confirmation"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,12,0" />
+                        <ComboBox Grid.Row="4"
+                                  Grid.Column="1"
+                                  ItemsSource="{Binding CloseConfirmationPolicies}"
+                                  SelectedItem="{Binding SelectedPreset.CloseConfirmationPolicy, Mode=TwoWay}" />
+                    </Grid>
+
+                    <Separator Margin="0,20,0,16" />
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="260" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <DockPanel Grid.Column="0">
+                            <TextBlock DockPanel.Dock="Top"
+                                       Text="Targets"
+                                       FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Margin="0,0,0,8" />
+                            <StackPanel DockPanel.Dock="Bottom"
+                                        Orientation="Horizontal"
+                                        Margin="0,8,0,0">
+                                <Button Content="Add"
+                                        Command="{Binding SelectedPreset.AddTargetCommand}"
+                                        MinWidth="56"
+                                        Margin="0,0,6,0" />
+                                <Button Content="Delete"
+                                        Command="{Binding SelectedPreset.DeleteTargetCommand}"
+                                        MinWidth="64"
+                                        Margin="0,0,6,0" />
+                                <Button Content="Up"
+                                        Command="{Binding SelectedPreset.MoveTargetUpCommand}"
+                                        MinWidth="44"
+                                        Margin="0,0,6,0" />
+                                <Button Content="Down"
+                                        Command="{Binding SelectedPreset.MoveTargetDownCommand}"
+                                        MinWidth="56" />
+                            </StackPanel>
+                            <ListBox ItemsSource="{Binding SelectedPreset.Targets}"
+                                     SelectedItem="{Binding SelectedPreset.SelectedTarget, Mode=TwoWay}"
+                                     DisplayMemberPath="Summary"
+                                     MinHeight="280" />
+                        </DockPanel>
+
+                        <StackPanel Grid.Column="2"
+                                    DataContext="{Binding SelectedPreset.SelectedTarget}">
+                            <TextBlock Text="Target Details"
+                                       FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Margin="0,0,0,16" />
+
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Row="0"
+                                           Grid.Column="0"
+                                           Text="Display name"
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,12,10" />
+                                <TextBox Grid.Row="0"
+                                         Grid.Column="1"
+                                         Text="{Binding DisplayName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         Margin="0,0,0,10" />
+
+                                <TextBlock Grid.Row="1"
+                                           Grid.Column="0"
+                                           Text="Type"
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,12,10" />
+                                <ComboBox Grid.Row="1"
+                                          Grid.Column="1"
+                                          ItemsSource="{Binding DataContext.SelectedPreset.TargetTypes, RelativeSource={RelativeSource AncestorType=Window}}"
+                                          SelectedItem="{Binding Type, Mode=TwoWay}"
+                                          Margin="0,0,0,10" />
+
+                                <TextBlock Grid.Row="2"
+                                           Grid.Column="0"
+                                           Text="Launch delay ms"
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,12,16" />
+                                <TextBox Grid.Row="2"
+                                         Grid.Column="1"
+                                         Text="{Binding LaunchDelayMs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         Margin="0,0,0,16" />
+                            </Grid>
+
+                            <StackPanel>
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsApplication}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+                                <TextBlock Text="Application"
+                                           FontWeight="SemiBold"
+                                           Margin="0,0,0,8" />
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Executable path" Margin="0,0,12,10" />
+                                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ExecutablePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Arguments" Margin="0,0,12,10" />
+                                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Arguments, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Working directory" Margin="0,0,12,10" />
+                                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding WorkingDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+                                    <CheckBox Grid.Row="3" Grid.Column="1" Content="Run as admin" IsChecked="{Binding RunAsAdmin, Mode=TwoWay}" Margin="0,0,0,10" />
+                                </Grid>
+                            </StackPanel>
+
+                            <StackPanel>
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsUrl}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="URL" Margin="0,0,12,10" />
+                                    <TextBox Grid.Column="1" Text="{Binding Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+                                </Grid>
+                            </StackPanel>
+
+                            <StackPanel>
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsFolder}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Path" Margin="0,0,12,10" />
+                                    <TextBox Grid.Column="1" Text="{Binding Path, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+                                </Grid>
+                            </StackPanel>
+
+                            <StackPanel>
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsChrome}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+                                <TextBlock Text="Chrome"
+                                           FontWeight="SemiBold"
+                                           Margin="0,0,0,8" />
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Profile name" Margin="0,0,12,10" />
+                                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ProfileName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+                                    <CheckBox Grid.Row="1" Grid.Column="1" Content="Open in new window" IsChecked="{Binding OpenInNewWindow, Mode=TwoWay}" Margin="0,0,0,10" />
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="URLs" Margin="0,4,12,10" />
+                                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding UrlsText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" MinHeight="90" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0,0,0,10" />
+                                </Grid>
+                            </StackPanel>
+
+                            <StackPanel>
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsNotion}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+                                <TextBlock Text="Notion"
+                                           FontWeight="SemiBold"
+                                           Margin="0,0,0,8" />
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox Grid.Row="0" Grid.Column="1" Content="Prefer desktop app" IsChecked="{Binding PreferDesktopApp, Mode=TwoWay}" Margin="0,0,0,10" />
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Page URLs" Margin="0,4,12,0" />
+                                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding PageUrlsText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" MinHeight="90" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </ScrollViewer>
         </Grid>
     </DockPanel>
 </Window>

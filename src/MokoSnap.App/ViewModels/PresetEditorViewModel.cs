@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using MokoSnap.Core.Models;
@@ -11,6 +12,7 @@ public sealed class PresetEditorViewModel : INotifyPropertyChanged
     private string _hotkeyText = string.Empty;
     private ClosePolicy _closePolicy;
     private CloseConfirmationPolicy _closeConfirmationPolicy = CloseConfirmationPolicy.AlwaysConfirm;
+    private TargetEditorViewModel? _selectedTarget;
 
     public PresetEditorViewModel(Preset preset)
     {
@@ -20,14 +22,49 @@ public sealed class PresetEditorViewModel : INotifyPropertyChanged
         HotkeyText = FormatHotkey(preset.Hotkey);
         ClosePolicy = preset.ClosePolicy;
         CloseConfirmationPolicy = preset.CloseConfirmationPolicy;
-        Targets = preset.Targets;
+        foreach (TargetConfig target in preset.Targets)
+        {
+            Targets.Add(new TargetEditorViewModel(target));
+        }
+
+        AddTargetCommand = new RelayCommand(AddTarget);
+        DeleteTargetCommand = new RelayCommand(DeleteTarget, () => SelectedTarget is not null);
+        MoveTargetUpCommand = new RelayCommand(MoveTargetUp, CanMoveTargetUp);
+        MoveTargetDownCommand = new RelayCommand(MoveTargetDown, CanMoveTargetDown);
+        SelectedTarget = Targets.FirstOrDefault();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public string Id { get; }
 
-    public List<TargetConfig> Targets { get; }
+    public ObservableCollection<TargetEditorViewModel> Targets { get; } = [];
+
+    public Array TargetTypes { get; } = Enum.GetValues(typeof(TargetType));
+
+    public RelayCommand AddTargetCommand { get; }
+
+    public RelayCommand DeleteTargetCommand { get; }
+
+    public RelayCommand MoveTargetUpCommand { get; }
+
+    public RelayCommand MoveTargetDownCommand { get; }
+
+    public TargetEditorViewModel? SelectedTarget
+    {
+        get => _selectedTarget;
+        set
+        {
+            if (_selectedTarget == value)
+            {
+                return;
+            }
+
+            _selectedTarget = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SelectedTarget)));
+            RaiseTargetCommandCanExecuteChanged();
+        }
+    }
 
     public string Name
     {
@@ -69,8 +106,87 @@ public sealed class PresetEditorViewModel : INotifyPropertyChanged
             Hotkey = ParseHotkey(HotkeyText),
             ClosePolicy = ClosePolicy,
             CloseConfirmationPolicy = CloseConfirmationPolicy,
-            Targets = Targets
+            Targets = Targets.Select(target => target.ToTarget()).ToList()
         };
+    }
+
+    private void AddTarget()
+    {
+        TargetEditorViewModel target = new(new TargetConfig
+        {
+            Type = TargetType.Url,
+            DisplayName = "New Target"
+        });
+
+        Targets.Add(target);
+        SelectedTarget = target;
+        RaiseTargetCommandCanExecuteChanged();
+    }
+
+    private void DeleteTarget()
+    {
+        if (SelectedTarget is null)
+        {
+            return;
+        }
+
+        int index = Targets.IndexOf(SelectedTarget);
+        Targets.Remove(SelectedTarget);
+        SelectedTarget = Targets.Count == 0 ? null : Targets[Math.Min(index, Targets.Count - 1)];
+        RaiseTargetCommandCanExecuteChanged();
+    }
+
+    private void MoveTargetUp()
+    {
+        if (SelectedTarget is null)
+        {
+            return;
+        }
+
+        int index = Targets.IndexOf(SelectedTarget);
+        if (index <= 0)
+        {
+            return;
+        }
+
+        Targets.Move(index, index - 1);
+        RaiseTargetCommandCanExecuteChanged();
+    }
+
+    private void MoveTargetDown()
+    {
+        if (SelectedTarget is null)
+        {
+            return;
+        }
+
+        int index = Targets.IndexOf(SelectedTarget);
+        if (index < 0 || index >= Targets.Count - 1)
+        {
+            return;
+        }
+
+        Targets.Move(index, index + 1);
+        RaiseTargetCommandCanExecuteChanged();
+    }
+
+    private bool CanMoveTargetUp()
+    {
+        return SelectedTarget is not null && Targets.IndexOf(SelectedTarget) > 0;
+    }
+
+    private bool CanMoveTargetDown()
+    {
+        return SelectedTarget is not null &&
+            Targets.IndexOf(SelectedTarget) >= 0 &&
+            Targets.IndexOf(SelectedTarget) < Targets.Count - 1;
+    }
+
+    private void RaiseTargetCommandCanExecuteChanged()
+    {
+        DeleteTargetCommand.RaiseCanExecuteChanged();
+        MoveTargetUpCommand.RaiseCanExecuteChanged();
+        MoveTargetDownCommand.RaiseCanExecuteChanged();
     }
 
     private static string FormatHotkey(HotkeyGesture? hotkey)
