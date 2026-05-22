@@ -8,6 +8,7 @@ using MokoSnap.Core.Hotkeys;
 using MokoSnap.Core.Models;
 using MokoSnap.Core.Running;
 using MokoSnap.Core.Storage;
+using MokoSnap.Core.Startup;
 
 namespace MokoSnap.App.ViewModels;
 
@@ -21,6 +22,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private readonly PresetRunnerService _presetRunnerService;
     private readonly IHotkeyService _hotkeyService;
     private readonly ICommandPaletteService _commandPaletteService;
+    private readonly IStartupRegistrationService _startupRegistrationService;
     private PresetEditorViewModel? _selectedPreset;
     private string _statusMessage = string.Empty;
     private string _runResultMessage = string.Empty;
@@ -37,7 +39,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
         IChromeNativeHostSetupDialogService chromeNativeHostSetupDialogService,
         PresetRunnerService presetRunnerService,
         IHotkeyService hotkeyService,
-        ICommandPaletteService commandPaletteService)
+        ICommandPaletteService commandPaletteService,
+        IStartupRegistrationService startupRegistrationService)
     {
         _settingsStorage = settingsStorage;
         _confirmationService = confirmationService;
@@ -47,6 +50,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         _presetRunnerService = presetRunnerService;
         _hotkeyService = hotkeyService;
         _commandPaletteService = commandPaletteService;
+        _startupRegistrationService = startupRegistrationService;
         _hotkeyService.HotkeyPressed += OnHotkeyPressed;
         LoadCommand = new AsyncRelayCommand(LoadAsync);
         AddCommand = new AsyncRelayCommand(AddAsync);
@@ -55,6 +59,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         CaptureCurrentAppsCommand = new AsyncRelayCommand(CaptureCurrentAppsAsync, () => SelectedPreset is not null);
         ImportLatestChromeTabsCommand = new AsyncRelayCommand(ImportLatestChromeTabsAsync, () => SelectedPreset is not null);
         ChromeCaptureSetupCommand = new RelayCommand(OpenChromeCaptureSetup);
+        SaveStartupSettingsCommand = new AsyncRelayCommand(SaveStartupSettingsAsync);
         RunCommand = new AsyncRelayCommand(RunAsync, () => SelectedPreset is not null && !IsRunning);
     }
 
@@ -79,6 +84,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public AsyncRelayCommand ImportLatestChromeTabsCommand { get; }
 
     public RelayCommand ChromeCaptureSetupCommand { get; }
+
+    public AsyncRelayCommand SaveStartupSettingsCommand { get; }
 
     public AsyncRelayCommand RunCommand { get; }
 
@@ -141,39 +148,58 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public bool LaunchOnStartup
     {
         get => _launchOnStartup;
-        private set
+        set
         {
-            _launchOnStartup = value;
-            OnPropertyChanged();
+            SetField(ref _launchOnStartup, value);
         }
     }
 
     public bool StartMinimizedToTray
     {
         get => _startMinimizedToTray;
-        private set
+        set
         {
-            _startMinimizedToTray = value;
-            OnPropertyChanged();
+            SetField(ref _startMinimizedToTray, value);
         }
     }
 
     public bool MinimizeToTray
     {
         get => _minimizeToTray;
-        private set
+        set
         {
-            _minimizeToTray = value;
-            OnPropertyChanged();
+            SetField(ref _minimizeToTray, value);
         }
     }
 
     public async Task LoadAsync()
     {
         AppSettings settings = await _settingsStorage.LoadAsync();
-        LaunchOnStartup = settings.LaunchOnStartup;
+        bool registeredForStartup = false;
+        try
+        {
+            registeredForStartup = _startupRegistrationService.IsRegistered();
+        }
+        catch
+        {
+            registeredForStartup = false;
+        }
+
+        LaunchOnStartup = settings.LaunchOnStartup || registeredForStartup;
         StartMinimizedToTray = settings.StartMinimizedToTray;
         MinimizeToTray = settings.MinimizeToTray;
+        if (LaunchOnStartup)
+        {
+            try
+            {
+                _startupRegistrationService.SetLaunchOnStartup(true, StartMinimizedToTray);
+            }
+            catch
+            {
+                LaunchOnStartup = false;
+            }
+        }
+
         Presets.Clear();
 
         foreach (Preset preset in settings.Presets)
@@ -300,6 +326,22 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private void OpenChromeCaptureSetup()
     {
         _chromeNativeHostSetupDialogService.ShowSetupDialog();
+    }
+
+    private async Task SaveStartupSettingsAsync()
+    {
+        try
+        {
+            _startupRegistrationService.SetLaunchOnStartup(LaunchOnStartup, StartMinimizedToTray);
+            await SaveSettingsAsync();
+            StatusMessage = LaunchOnStartup
+                ? "Startup registration saved for current user."
+                : "Startup registration disabled for current user.";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Startup registration failed: {ex.Message}";
+        }
     }
 
     private async Task RunAsync()
@@ -526,5 +568,17 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value))
+        {
+            return false;
+        }
+
+        field = value;
+        OnPropertyChanged(propertyName);
+        return true;
     }
 }

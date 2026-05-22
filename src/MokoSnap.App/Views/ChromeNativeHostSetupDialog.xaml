@@ -46,7 +46,7 @@
                                Margin="0,0,12,10" />
                     <TextBox Grid.Row="1"
                              Grid.Column="1"
-                             Text="{Binding NativeHostExePath}"
+                             Text="{Binding NativeHostExePath, Mode=OneWay}"
                              IsReadOnly="True"
                              TextWrapping="Wrap"
                              Margin="0,0,0,10" />
@@ -57,7 +57,7 @@
                                Margin="0,0,12,10" />
                     <TextBox Grid.Row="2"
                              Grid.Column="1"
-                             Text="{Binding ManifestPath}"
+                             Text="{Binding ManifestPath, Mode=OneWay}"
                              IsReadOnly="True"
                              TextWrapping="Wrap"
                              Margin="0,0,0,10" />
@@ -68,7 +68,7 @@
                                Margin="0,0,12,10" />
                     <TextBox Grid.Row="3"
                              Grid.Column="1"
-                             Text="{Binding RegistryStatus}"
+                             Text="{Binding RegistryStatus, Mode=OneWay}"
                              IsReadOnly="True"
                              TextWrapping="Wrap"
                              Margin="0,0,0,10" />
@@ -79,7 +79,7 @@
                                Margin="0,0,12,0" />
                     <TextBox Grid.Row="4"
                              Grid.Column="1"
-                             Text="{Binding LatestCaptureStatus}"
+                             Text="{Binding LatestCaptureStatus, Mode=OneWay}"
                              IsReadOnly="True"
                              TextWrapping="Wrap" />
                 </Grid>
@@ -110,7 +110,7 @@
                 <TextBlock Text="Diagnostics"
                            FontWeight="SemiBold"
                            Margin="0,0,0,8" />
-                <TextBox Text="{Binding DiagnosticsText}"
+                <TextBox Text="{Binding DiagnosticsText, Mode=OneWay}"
                          IsReadOnly="True"
                          AcceptsReturn="True"
                          MinHeight="190"

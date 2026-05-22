@@ -41,6 +41,70 @@ public class ChromeNativeHostSetupTests
     }
 
     [Fact]
+    public void NativeHostPathResolverPrefersExplicitPath()
+    {
+        string resolved = ChromeNativeHostPathResolver.Resolve(
+            @"C:\App",
+            @"C:\Configured\MokoSnap.NativeHost.exe",
+            _ => false);
+
+        Assert.Equal(@"C:\Configured\MokoSnap.NativeHost.exe", resolved);
+    }
+
+    [Fact]
+    public void NativeHostPathResolverFindsPublishedSiblingNativeHost()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        string appBaseDirectory = Path.Combine(directory, "artifacts", "publish", "MokoSnap", "MokoSnap.App");
+        string nativeHostPath = Path.Combine(
+            directory,
+            "artifacts",
+            "publish",
+            "MokoSnap",
+            "MokoSnap.NativeHost",
+            "MokoSnap.NativeHost.exe");
+        Directory.CreateDirectory(appBaseDirectory);
+        Directory.CreateDirectory(Path.GetDirectoryName(nativeHostPath)!);
+        File.WriteAllText(nativeHostPath, string.Empty);
+
+        string resolved = ChromeNativeHostPathResolver.Resolve(appBaseDirectory, null, File.Exists);
+
+        Assert.Equal(nativeHostPath, resolved);
+    }
+
+    [Fact]
+    public void NativeHostPathResolverFindsDevelopmentReleaseBeforeDebug()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        string appBaseDirectory = Path.Combine(directory, "src", "MokoSnap.App", "bin", "Debug", "net8.0-windows");
+        string releaseNativeHostPath = Path.Combine(
+            directory,
+            "src",
+            "MokoSnap.NativeHost",
+            "bin",
+            "Release",
+            "net8.0",
+            "MokoSnap.NativeHost.exe");
+        string debugNativeHostPath = Path.Combine(
+            directory,
+            "src",
+            "MokoSnap.NativeHost",
+            "bin",
+            "Debug",
+            "net8.0",
+            "MokoSnap.NativeHost.exe");
+        Directory.CreateDirectory(appBaseDirectory);
+        Directory.CreateDirectory(Path.GetDirectoryName(releaseNativeHostPath)!);
+        Directory.CreateDirectory(Path.GetDirectoryName(debugNativeHostPath)!);
+        File.WriteAllText(releaseNativeHostPath, string.Empty);
+        File.WriteAllText(debugNativeHostPath, string.Empty);
+
+        string resolved = ChromeNativeHostPathResolver.Resolve(appBaseDirectory, null, File.Exists);
+
+        Assert.Equal(releaseNativeHostPath, resolved);
+    }
+
+    [Fact]
     public void RegisterWritesManifestAndHkcuRegistryValueThroughAbstraction()
     {
         string directory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
@@ -65,6 +129,42 @@ public class ChromeNativeHostSetupTests
         Assert.True(File.Exists(manifestPath));
         Assert.Equal(manifestPath, registry.RegisteredManifestPath);
         Assert.True(registry.KeyExists());
+    }
+
+    [Fact]
+    public void RegisterWritesManifestWithPublishedNativeHostPath()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        string appBaseDirectory = Path.Combine(directory, "artifacts", "publish", "MokoSnap", "MokoSnap.App");
+        string nativeHostPath = Path.Combine(
+            directory,
+            "artifacts",
+            "publish",
+            "MokoSnap",
+            "MokoSnap.NativeHost",
+            "MokoSnap.NativeHost.exe");
+        string manifestPath = Path.Combine(directory, "chrome-native-host-manifest.json");
+        Directory.CreateDirectory(appBaseDirectory);
+        Directory.CreateDirectory(Path.GetDirectoryName(nativeHostPath)!);
+        File.WriteAllText(nativeHostPath, string.Empty);
+        FakeChromeNativeHostRegistry registry = new();
+        ChromeNativeHostSetupService service = new(
+            registry,
+            manifestPath,
+            Path.Combine(directory, "chrome-tabs-latest.json"),
+            appBaseDirectory: appBaseDirectory);
+
+        ChromeNativeHostSetupStatus status = service.Register(new ChromeNativeHostSetupRequest
+        {
+            ExtensionId = "abcdefghijklmnopabcdefghijklmnop"
+        });
+
+        string json = File.ReadAllText(manifestPath);
+        ChromeNativeHostManifest manifest = JsonSerializer.Deserialize<ChromeNativeHostManifest>(
+            json,
+            FileJsonStorage<ChromeNativeHostManifest>.CreateJsonSerializerOptions())!;
+        Assert.True(status.Ready);
+        Assert.Equal(nativeHostPath, manifest.Path);
     }
 
     [Fact]

@@ -15,12 +15,16 @@ public sealed class ChromeNativeHostSetupService
         IChromeNativeHostRegistry? registry = null,
         string? manifestPath = null,
         string? latestCapturePath = null,
-        string? nativeHostExePath = null)
+        string? nativeHostExePath = null,
+        string? appBaseDirectory = null)
     {
         _registry = registry ?? CreateDefaultRegistry();
         _manifestPath = manifestPath ?? MokoSnapStoragePaths.ChromeNativeHostManifestPath;
         _latestCapturePath = latestCapturePath ?? MokoSnapStoragePaths.ChromeTabsLatestPath;
-        _nativeHostExePath = nativeHostExePath ?? LocateNativeHostExe();
+        _nativeHostExePath = ChromeNativeHostPathResolver.Resolve(
+            appBaseDirectory ?? AppContext.BaseDirectory,
+            nativeHostExePath,
+            File.Exists);
     }
 
     public string ExtensionFolderPath => LocateExtensionFolder();
@@ -47,7 +51,7 @@ public sealed class ChromeNativeHostSetupService
 
         if (!status.NativeHostExeExists)
         {
-            status.Errors.Add("MokoSnap.NativeHost.exe was not found. Build MokoSnap.NativeHost first.");
+            status.Errors.Add("MokoSnap.NativeHost.exe was not found. Publish or build MokoSnap.NativeHost first.");
             PopulateManifestStatus(status);
             PopulateRegistryStatus(status);
             return status;
@@ -109,7 +113,8 @@ public sealed class ChromeNativeHostSetupService
                 manifest is not null &&
                 manifest.Name == ChromeNativeHostSetup.HostName &&
                 manifest.Type == "stdio" &&
-                !string.IsNullOrWhiteSpace(manifest.Path) &&
+                string.Equals(manifest.Path, _nativeHostExePath, StringComparison.OrdinalIgnoreCase) &&
+                File.Exists(manifest.Path) &&
                 manifest.AllowedOrigins.Count > 0;
         }
         catch (JsonException)
@@ -145,7 +150,7 @@ public sealed class ChromeNativeHostSetupService
 
         if (!status.NativeHostExeExists)
         {
-            status.Errors.Add("MokoSnap.NativeHost.exe was not found. Build MokoSnap.NativeHost first.");
+            status.Errors.Add("MokoSnap.NativeHost.exe was not found. Publish or build MokoSnap.NativeHost first.");
         }
 
         if (!status.ManifestFileExists)
@@ -154,7 +159,7 @@ public sealed class ChromeNativeHostSetupService
         }
         else if (!status.ManifestJsonValid)
         {
-            status.Errors.Add("Native host manifest exists but is not valid.");
+            status.Errors.Add("Native host manifest exists but is not valid for the resolved NativeHost path.");
         }
 
         if (!status.RegistryKeyExists)
@@ -170,30 +175,6 @@ public sealed class ChromeNativeHostSetupService
         {
             status.Warnings.Add("No latest Chrome capture file exists yet.");
         }
-    }
-
-    private static string LocateNativeHostExe()
-    {
-        string baseDirectory = AppContext.BaseDirectory;
-        List<string> candidates =
-        [
-            Path.Combine(baseDirectory, "MokoSnap.NativeHost.exe")
-        ];
-
-        DirectoryInfo? srcDirectory = FindAncestor(baseDirectory, "src");
-        if (srcDirectory is not null)
-        {
-            string nativeHostBin = Path.Combine(srcDirectory.FullName, "MokoSnap.NativeHost", "bin");
-            if (Directory.Exists(nativeHostBin))
-            {
-                candidates.AddRange(Directory.GetFiles(
-                    nativeHostBin,
-                    "MokoSnap.NativeHost.exe",
-                    SearchOption.AllDirectories));
-            }
-        }
-
-        return candidates.FirstOrDefault(File.Exists) ?? candidates[0];
     }
 
     private static IChromeNativeHostRegistry CreateDefaultRegistry()

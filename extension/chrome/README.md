@@ -35,3 +35,15 @@ window id, tab id, title, URL, active state, pinned state, and tab index.
 
 After capture, the native host writes:
 `%AppData%\MokoSnap\chrome-tabs-latest.json`
+
+Published setup:
+
+1. Run `./scripts/publish-local.ps1` from the repository root.
+2. Launch `artifacts/publish/MokoSnap/MokoSnap.App/MokoSnap.App.exe`.
+3. Open `Chrome Capture Setup`.
+4. Paste the unpacked extension ID.
+5. Click `Register Native Host`.
+6. Restart Chrome.
+
+When MokoSnap runs from the publish folder, the generated manifest points to the sibling published native host:
+`artifacts/publish/MokoSnap/MokoSnap.NativeHost/MokoSnap.NativeHost.exe`

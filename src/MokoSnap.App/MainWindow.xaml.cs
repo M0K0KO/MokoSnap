@@ -13,6 +13,7 @@ using MokoSnap.Platform.Windows.Capture;
 using MokoSnap.Platform.Windows.ChromeCapture;
 using MokoSnap.Platform.Windows.Hotkeys;
 using MokoSnap.Platform.Windows.Launching;
+using MokoSnap.Platform.Windows.Startup;
 
 namespace MokoSnap.App;
 
@@ -72,7 +73,8 @@ public partial class MainWindow : Window
                 new WindowsVisibleWindowCloser(new CloseWindowsConfirmationService()),
                 new SystemLaunchDelay()),
             _hotkeyService,
-            new CommandPaletteService(this));
+            new CommandPaletteService(this),
+            new WindowsStartupRegistrationService());
     }
 
     protected override void OnClosed(EventArgs e)

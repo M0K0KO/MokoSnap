@@ -1,0 +1,23 @@
+# Visual Studio user state
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# .NET build and test outputs
+bin/
+obj/
+TestResults/
+
+# Local publish/build artifacts
+artifacts/
+publish/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.cache
+
+# Local Chrome Native Messaging manifest
+extension/chrome/native-host-manifest.local.json

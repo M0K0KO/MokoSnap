@@ -55,6 +55,25 @@
             <ScrollViewer Grid.Column="2"
                           VerticalScrollBarVisibility="Auto">
                 <StackPanel>
+                    <TextBlock Text="App Settings"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               Margin="0,0,0,8" />
+                    <WrapPanel Margin="0,0,0,16">
+                        <CheckBox Content="Launch on Windows startup"
+                                  IsChecked="{Binding LaunchOnStartup, Mode=TwoWay}"
+                                  Command="{Binding SaveStartupSettingsCommand}"
+                                  Margin="0,0,16,8" />
+                        <CheckBox Content="Start minimized to tray"
+                                  IsChecked="{Binding StartMinimizedToTray, Mode=TwoWay}"
+                                  Command="{Binding SaveStartupSettingsCommand}"
+                                  Margin="0,0,16,8" />
+                        <CheckBox Content="Minimize to tray"
+                                  IsChecked="{Binding MinimizeToTray, Mode=TwoWay}"
+                                  Command="{Binding SaveStartupSettingsCommand}"
+                                  Margin="0,0,0,8" />
+                    </WrapPanel>
+
                     <TextBlock Text="Preset Details"
                                FontSize="18"
                                FontWeight="SemiBold"
