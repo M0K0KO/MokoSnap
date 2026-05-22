@@ -169,4 +169,22 @@ public class JsonSerializationTests
         Assert.Equal("1", preset.Hotkey.Key);
         Assert.Equal("Ctrl+Alt+1", HotkeyGestureFormatter.Format(preset.Hotkey));
     }
+
+    [Fact]
+    public void AppSettingsRoundTripPreservesQuickSwitcherHotkey()
+    {
+        AppSettings settings = new()
+        {
+            QuickSwitcherHotkey = HotkeyGestureFormatter.Parse("Ctrl+Shift+K")
+        };
+
+        string json = JsonSerializer.Serialize(settings, FileJsonStorage<AppSettings>.CreateJsonSerializerOptions());
+        AppSettings? roundTripped = JsonSerializer.Deserialize<AppSettings>(
+            json,
+            FileJsonStorage<AppSettings>.CreateJsonSerializerOptions());
+
+        Assert.NotNull(roundTripped);
+        Assert.NotNull(roundTripped.QuickSwitcherHotkey);
+        Assert.Equal("Ctrl+Shift+K", HotkeyGestureFormatter.Format(roundTripped.QuickSwitcherHotkey));
+    }
 }

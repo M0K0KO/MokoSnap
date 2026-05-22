@@ -132,3 +132,16 @@ Reason:
 - Position/maximized state is accessible through Win32 APIs.
 - Windows Snap Layout metadata is not exposed as a stable public restore API.
 - Game fullscreen modes are app-internal and cannot be reliably restored externally.
+
+
+## 008. Second Launch Activation
+
+MokoSnap is a single-instance tray/background app.
+
+If a second process starts, it signals the existing instance to show and focus the main window, then exits. This also applies when the second process is launched with `--minimized`.
+
+Reason:
+
+- Start Menu and Desktop launches should reliably bring MokoSnap back.
+- A single behavior avoids duplicate tray icons and duplicate global hotkey registration.
+- Startup `--minimized` still applies when it is the first process.

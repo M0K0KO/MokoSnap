@@ -49,6 +49,39 @@ public static class HotkeyValidator
         return new HotkeyValidationResult(messages);
     }
 
+    public static HotkeyValidationResult ValidateQuickSwitcherHotkey(
+        HotkeyGesture quickSwitcherHotkey,
+        IEnumerable<Preset> presets)
+    {
+        List<HotkeyValidationMessage> messages = ValidateGesture(
+            quickSwitcherHotkey,
+            presetName: "Quick Switcher").Messages.ToList();
+        HotkeyGestureKey quickSwitcherKey = HotkeyGestureKey.FromGesture(quickSwitcherHotkey);
+
+        foreach (Preset preset in presets)
+        {
+            if (preset.Hotkey is null || string.IsNullOrWhiteSpace(preset.Hotkey.Key))
+            {
+                continue;
+            }
+
+            HotkeyGestureKey presetKey = HotkeyGestureKey.FromGesture(preset.Hotkey);
+            if (!presetKey.Equals(quickSwitcherKey))
+            {
+                continue;
+            }
+
+            messages.Add(HotkeyValidationMessage.Error(
+                preset.Id,
+                preset.Name,
+                preset.Hotkey,
+                $"Quick Switcher hotkey {quickSwitcherKey} conflicts with {DisplayName(preset)}.",
+                DisplayName(preset)));
+        }
+
+        return new HotkeyValidationResult(messages);
+    }
+
     public static HotkeyValidationResult ValidateGesture(
         HotkeyGesture? gesture,
         string presetId = "",

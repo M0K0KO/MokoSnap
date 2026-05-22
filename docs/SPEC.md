@@ -250,7 +250,7 @@ Recommended default:
 
 
 
-\- Ctrl + Alt + Space opens quick switcher
+\- Ctrl + Alt + M opens quick switcher
 
 \- Search preset by typing
 

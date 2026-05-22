@@ -127,4 +127,24 @@ public class HotkeyValidatorTests
         HotkeyValidationMessage duplicate = Assert.Single(result.Errors);
         Assert.Equal("First", duplicate.ConflictingPresetName);
     }
+
+    [Fact]
+    public void QuickSwitcherHotkeyConflictWithPresetIsInvalid()
+    {
+        Preset preset = new()
+        {
+            Id = "work",
+            Name = "Work",
+            Hotkey = HotkeyGestureFormatter.Parse("Ctrl+Alt+M")
+        };
+
+        HotkeyValidationResult result = HotkeyValidator.ValidateQuickSwitcherHotkey(
+            QuickSwitcherHotkeyDefaults.CreateDefault(),
+            [preset]);
+
+        Assert.False(result.IsValid);
+        HotkeyValidationMessage conflict = Assert.Single(result.Errors);
+        Assert.Equal("Work", conflict.ConflictingPresetName);
+        Assert.Contains("Quick Switcher", conflict.Message, StringComparison.OrdinalIgnoreCase);
+    }
 }

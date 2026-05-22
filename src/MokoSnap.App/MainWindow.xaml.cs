@@ -210,6 +210,11 @@ public partial class MainWindow : Window
         DialogFocusHelper.ActivateAndFocus(this, this);
     }
 
+    public void ActivateFromExternalLaunch()
+    {
+        ShowMainWindow();
+    }
+
     private void ExitFromTray()
     {
         _isExplicitExit = true;

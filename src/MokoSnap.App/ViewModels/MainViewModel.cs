@@ -30,6 +30,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private bool _launchOnStartup;
     private bool _startMinimizedToTray;
     private bool _minimizeToTray = true;
+    private HotkeyGesture _quickSwitcherHotkey = QuickSwitcherHotkeyDefaults.CreateDefault();
 
     public MainViewModel(
         IJsonStorage<AppSettings> settingsStorage,
@@ -188,6 +189,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
         LaunchOnStartup = settings.LaunchOnStartup || registeredForStartup;
         StartMinimizedToTray = settings.StartMinimizedToTray;
         MinimizeToTray = settings.MinimizeToTray;
+        bool quickSwitcherHotkeyMigrated = QuickSwitcherHotkeyDefaults.ShouldUseDefault(settings.QuickSwitcherHotkey);
+        _quickSwitcherHotkey = QuickSwitcherHotkeyDefaults.Resolve(settings.QuickSwitcherHotkey);
         if (LaunchOnStartup)
         {
             try
@@ -198,6 +201,12 @@ public sealed class MainViewModel : INotifyPropertyChanged
             {
                 LaunchOnStartup = false;
             }
+        }
+
+        if (quickSwitcherHotkeyMigrated)
+        {
+            settings.QuickSwitcherHotkey = _quickSwitcherHotkey;
+            await _settingsStorage.SaveAsync(settings);
         }
 
         Presets.Clear();
@@ -482,6 +491,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
             LaunchOnStartup = LaunchOnStartup,
             StartMinimizedToTray = StartMinimizedToTray,
             MinimizeToTray = MinimizeToTray,
+            QuickSwitcherHotkey = _quickSwitcherHotkey,
             Presets = presets.ToList()
         };
 
@@ -497,13 +507,16 @@ public sealed class MainViewModel : INotifyPropertyChanged
     {
         List<string> messages = [];
         _hotkeyService.UnregisterAll();
-        HotkeyRegistrationResult commandPaletteResult = _hotkeyService.RegisterCommandPaletteHotkey(new HotkeyGesture
+        HotkeyValidationResult quickSwitcherValidation = HotkeyValidator.ValidateQuickSwitcherHotkey(
+            _quickSwitcherHotkey,
+            presets);
+        messages.AddRange(quickSwitcherValidation.Errors.Select(error => error.Message));
+
+        if (!quickSwitcherValidation.Errors.Any(error => string.IsNullOrWhiteSpace(error.PresetId)))
         {
-            Key = "Space",
-            Ctrl = true,
-            Alt = true
-        });
-        AddRegistrationFailure(messages, commandPaletteResult, "Command palette");
+            HotkeyRegistrationResult commandPaletteResult = _hotkeyService.RegisterCommandPaletteHotkey(_quickSwitcherHotkey);
+            AddRegistrationFailure(messages, commandPaletteResult, "Quick Switcher");
+        }
 
         HotkeyValidationResult validation = HotkeyValidator.ValidatePresets(presets);
         foreach (Preset preset in presets)
