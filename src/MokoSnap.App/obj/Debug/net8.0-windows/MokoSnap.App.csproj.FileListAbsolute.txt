@@ -32,3 +32,5 @@ C:\PORTFOLIO\MokoSnap\src\MokoSnap.App\obj\Debug\net8.0-windows\Views\CommandPal
 C:\PORTFOLIO\MokoSnap\src\MokoSnap.App\obj\Debug\net8.0-windows\Views\CommandPaletteWindow.g.cs
 C:\PORTFOLIO\MokoSnap\src\MokoSnap.App\obj\Debug\net8.0-windows\Views\ChromeTabsDialog.baml
 C:\PORTFOLIO\MokoSnap\src\MokoSnap.App\obj\Debug\net8.0-windows\Views\ChromeTabsDialog.g.cs
+C:\PORTFOLIO\MokoSnap\src\MokoSnap.App\obj\Debug\net8.0-windows\Views\ChromeNativeHostSetupDialog.baml
+C:\PORTFOLIO\MokoSnap\src\MokoSnap.App\obj\Debug\net8.0-windows\Views\ChromeNativeHostSetupDialog.g.cs

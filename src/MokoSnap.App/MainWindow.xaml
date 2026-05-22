@@ -185,7 +185,11 @@
                                         Margin="0,0,6,0" />
                                 <Button Content="Import Latest Chrome Tabs"
                                         Command="{Binding ImportLatestChromeTabsCommand}"
-                                        MinWidth="160" />
+                                        MinWidth="160"
+                                        Margin="0,0,6,0" />
+                                <Button Content="Chrome Capture Setup"
+                                        Command="{Binding ChromeCaptureSetupCommand}"
+                                        MinWidth="152" />
                             </WrapPanel>
                             <ListBox ItemsSource="{Binding SelectedPreset.Targets}"
                                      SelectedItem="{Binding SelectedPreset.SelectedTarget, Mode=TwoWay}"

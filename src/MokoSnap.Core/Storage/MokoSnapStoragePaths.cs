@@ -18,6 +18,9 @@ public static class MokoSnapStoragePaths
     public static string ChromeTabsLatestPath { get; } =
         System.IO.Path.Combine(AppDataDirectory, "chrome-tabs-latest.json");
 
+    public static string ChromeNativeHostManifestPath { get; } =
+        System.IO.Path.Combine(AppDataDirectory, "chrome-native-host-manifest.json");
+
     public static FileJsonStorage<AppSettings> CreateAppSettingsStorage()
     {
         return new FileJsonStorage<AppSettings>(AppSettingsPath, AppSettings.CreateDefault);

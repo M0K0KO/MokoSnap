@@ -17,6 +17,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private readonly IConfirmationService _confirmationService;
     private readonly ICapturedAppSelectionService _capturedAppSelectionService;
     private readonly IChromeTabCaptureSelectionService _chromeTabCaptureSelectionService;
+    private readonly IChromeNativeHostSetupDialogService _chromeNativeHostSetupDialogService;
     private readonly PresetRunnerService _presetRunnerService;
     private readonly IHotkeyService _hotkeyService;
     private readonly ICommandPaletteService _commandPaletteService;
@@ -33,6 +34,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         IConfirmationService confirmationService,
         ICapturedAppSelectionService capturedAppSelectionService,
         IChromeTabCaptureSelectionService chromeTabCaptureSelectionService,
+        IChromeNativeHostSetupDialogService chromeNativeHostSetupDialogService,
         PresetRunnerService presetRunnerService,
         IHotkeyService hotkeyService,
         ICommandPaletteService commandPaletteService)
@@ -41,6 +43,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         _confirmationService = confirmationService;
         _capturedAppSelectionService = capturedAppSelectionService;
         _chromeTabCaptureSelectionService = chromeTabCaptureSelectionService;
+        _chromeNativeHostSetupDialogService = chromeNativeHostSetupDialogService;
         _presetRunnerService = presetRunnerService;
         _hotkeyService = hotkeyService;
         _commandPaletteService = commandPaletteService;
@@ -51,6 +54,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         DeleteCommand = new AsyncRelayCommand(DeleteAsync, () => SelectedPreset is not null);
         CaptureCurrentAppsCommand = new AsyncRelayCommand(CaptureCurrentAppsAsync, () => SelectedPreset is not null);
         ImportLatestChromeTabsCommand = new AsyncRelayCommand(ImportLatestChromeTabsAsync, () => SelectedPreset is not null);
+        ChromeCaptureSetupCommand = new RelayCommand(OpenChromeCaptureSetup);
         RunCommand = new AsyncRelayCommand(RunAsync, () => SelectedPreset is not null && !IsRunning);
     }
 
@@ -73,6 +77,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public AsyncRelayCommand CaptureCurrentAppsCommand { get; }
 
     public AsyncRelayCommand ImportLatestChromeTabsCommand { get; }
+
+    public RelayCommand ChromeCaptureSetupCommand { get; }
 
     public AsyncRelayCommand RunCommand { get; }
 
@@ -289,6 +295,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
             $"Imported {chromeTarget.Urls.Count} Chrome tab(s).",
             presets,
             hotkeyMessages);
+    }
+
+    private void OpenChromeCaptureSetup()
+    {
+        _chromeNativeHostSetupDialogService.ShowSetupDialog();
     }
 
     private async Task RunAsync()
