@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
 using System.Runtime.CompilerServices;
 using MokoSnap.App.Services;
 using MokoSnap.Core.Capture;
@@ -36,8 +38,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private string _chromeCaptureStatus = string.Empty;
     private string _chromeNativeHostStatusLabel = "Not configured";
     private string _chromeNativeHostStatusText = string.Empty;
+    private string _chromeNativeHostExePath = string.Empty;
     private string _latestChromeCaptureStatusLabel = "Not configured";
     private string _latestChromeCaptureStatusText = string.Empty;
+    private string _latestChromeCapturePath = string.Empty;
+    private string _chromeExtensionSetupReminder = string.Empty;
     private string _diagnosticsText = string.Empty;
     private SettingsDialogViewModel? _settingsPage;
     private string _settingsPageStatus = string.Empty;
@@ -83,7 +88,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
         DeleteCommand = new AsyncRelayCommand(DeleteAsync, () => SelectedPreset is not null);
         CaptureCurrentAppsCommand = new AsyncRelayCommand(CaptureCurrentAppsAsync, () => SelectedPreset is not null);
         ImportLatestChromeTabsCommand = new AsyncRelayCommand(ImportLatestChromeTabsAsync, () => SelectedPreset is not null);
+        ImportLatestChromeTabsFromPageCommand = new AsyncRelayCommand(ImportLatestChromeTabsFromPageAsync);
         ChromeCaptureSetupCommand = new RelayCommand(OpenChromeCaptureSetup);
+        OpenChromeExtensionsPageCommand = new RelayCommand(OpenChromeExtensionsPage);
+        OpenChromeExtensionFolderCommand = new RelayCommand(OpenChromeExtensionFolder);
+        RefreshChromeCaptureStatusCommand = new RelayCommand(() => RefreshDiagnostics());
         SaveStartupSettingsCommand = new AsyncRelayCommand(SaveStartupSettingsAsync);
         OpenSettingsCommand = new AsyncRelayCommand(OpenSettingsAsync);
         SaveSettingsPageCommand = new AsyncRelayCommand(SaveSettingsPageAsync);
@@ -122,7 +131,15 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     public AsyncRelayCommand ImportLatestChromeTabsCommand { get; }
 
+    public AsyncRelayCommand ImportLatestChromeTabsFromPageCommand { get; }
+
     public RelayCommand ChromeCaptureSetupCommand { get; }
+
+    public RelayCommand OpenChromeExtensionsPageCommand { get; }
+
+    public RelayCommand OpenChromeExtensionFolderCommand { get; }
+
+    public RelayCommand RefreshChromeCaptureStatusCommand { get; }
 
     public AsyncRelayCommand SaveStartupSettingsCommand { get; }
 
@@ -219,6 +236,12 @@ public sealed class MainViewModel : INotifyPropertyChanged
         private set => SetField(ref _chromeNativeHostStatusText, value);
     }
 
+    public string ChromeNativeHostExePath
+    {
+        get => _chromeNativeHostExePath;
+        private set => SetField(ref _chromeNativeHostExePath, value);
+    }
+
     public string LatestChromeCaptureStatusLabel
     {
         get => _latestChromeCaptureStatusLabel;
@@ -230,6 +253,22 @@ public sealed class MainViewModel : INotifyPropertyChanged
         get => _latestChromeCaptureStatusText;
         private set => SetField(ref _latestChromeCaptureStatusText, value);
     }
+
+    public string LatestChromeCapturePath
+    {
+        get => _latestChromeCapturePath;
+        private set => SetField(ref _latestChromeCapturePath, value);
+    }
+
+    public string ChromeExtensionSetupReminder
+    {
+        get => _chromeExtensionSetupReminder;
+        private set => SetField(ref _chromeExtensionSetupReminder, value);
+    }
+
+    public string ChromeCaptureImportGuidance => SelectedPreset is null
+        ? "Select a preset before importing captured Chrome tabs."
+        : $"Latest Chrome tabs will be imported into '{SelectedPreset.Name}'.";
 
     public string LastOperationStatus => string.IsNullOrWhiteSpace(StatusMessage) ? "None." : StatusMessage;
 
@@ -270,6 +309,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
             CaptureCurrentAppsCommand.RaiseCanExecuteChanged();
             ImportLatestChromeTabsCommand.RaiseCanExecuteChanged();
             RunCommand.RaiseCanExecuteChanged();
+            OnPropertyChanged(nameof(ChromeCaptureImportGuidance));
         }
     }
 
@@ -519,6 +559,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
     {
         if (SelectedPreset is null)
         {
+            StatusMessage = "Chrome tabs not imported. Select a preset first.";
+            RefreshDiagnostics();
             return;
         }
 
@@ -527,6 +569,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         if (!selectionResult.Succeeded)
         {
             StatusMessage = selectionResult.Message;
+            RefreshDiagnostics();
             return;
         }
 
@@ -546,11 +589,34 @@ public sealed class MainViewModel : INotifyPropertyChanged
         RefreshDiagnostics();
     }
 
+    private Task ImportLatestChromeTabsFromPageAsync()
+    {
+        return ImportLatestChromeTabsAsync();
+    }
+
     private void OpenChromeCaptureSetup()
     {
         _chromeNativeHostSetupDialogService.ShowSetupDialog();
         ResetSettingsPage("Chrome Capture status refreshed.");
         RefreshDiagnostics();
+    }
+
+    private void OpenChromeExtensionsPage()
+    {
+        OpenShellTarget("chrome://extensions");
+    }
+
+    private void OpenChromeExtensionFolder()
+    {
+        string path = _chromeCaptureDiagnosticsService.GetExtensionFolderPath();
+        if (!Directory.Exists(path))
+        {
+            StatusMessage = $"Chrome extension folder was not found: {path}";
+            RefreshDiagnostics();
+            return;
+        }
+
+        OpenShellTarget(path);
     }
 
     private async Task SaveStartupSettingsAsync()
@@ -985,8 +1051,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
         ChromeCaptureStatus = chromeSnapshot.DetailsText;
         ChromeNativeHostStatusLabel = chromeSnapshot.NativeHostStatusLabel;
         ChromeNativeHostStatusText = chromeSnapshot.NativeHostStatusText;
+        ChromeNativeHostExePath = chromeSnapshot.NativeHostExePath;
         LatestChromeCaptureStatusLabel = chromeSnapshot.LatestCaptureStatusLabel;
         LatestChromeCaptureStatusText = chromeSnapshot.LatestCaptureStatusText;
+        LatestChromeCapturePath = chromeSnapshot.LatestCapturePath;
+        ChromeExtensionSetupReminder = chromeSnapshot.ExtensionSetupReminder;
         DiagnosticsText = string.Join(
             Environment.NewLine,
             [
@@ -1109,6 +1178,25 @@ public sealed class MainViewModel : INotifyPropertyChanged
         }
 
         return status;
+    }
+
+    private void OpenShellTarget(string target)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = target,
+                UseShellExecute = true
+            });
+            StatusMessage = $"Opened {target}.";
+            RefreshDiagnostics();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Open failed: {ex.Message}";
+            RefreshDiagnostics();
+        }
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
