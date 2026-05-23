@@ -3,6 +3,7 @@
                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                 xmlns:models="clr-namespace:MokoSnap.Core.Models;assembly=MokoSnap.Core"
                  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                  mc:Ignorable="d"
                  Title="MokoSnap"
@@ -146,33 +147,58 @@
                 <Grid>
             <Grid Visibility="{Binding IsPresetsSectionSelected, Converter={StaticResource BoolToVisibility}}">
                 <DockPanel>
-                    <StackPanel DockPanel.Dock="Top"
-                                Orientation="Horizontal"
-                                Margin="0,0,0,12">
-                        <Button Content="Add Preset"
-                                Command="{Binding AddCommand}"
-                                MinWidth="96"
-                                Margin="0,0,8,0" />
-                        <Button Content="Save"
-                                Command="{Binding SaveCommand}"
-                                MinWidth="80"
-                                Margin="0,0,8,0" />
-                        <Button Content="Delete"
+                    <Grid DockPanel.Dock="Top" Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <WrapPanel Grid.Column="0">
+                            <Button Content="Add Preset"
+                                    Command="{Binding AddCommand}"
+                                    MinWidth="110"
+                                    MinHeight="38"
+                                    Margin="0,0,8,8" />
+                            <Button Content="Save"
+                                    Command="{Binding SaveCommand}"
+                                    MinWidth="90"
+                                    MinHeight="38"
+                                    Margin="0,0,8,8" />
+                            <Button Content="Run Preset"
+                                    Command="{Binding RunCommand}"
+                                    MinWidth="120"
+                                    MinHeight="38"
+                                    Margin="0,0,8,8" />
+                            <Button Content="Capture Current Apps"
+                                    Command="{Binding CaptureCurrentAppsCommand}"
+                                    MinWidth="170"
+                                    MinHeight="38"
+                                    Margin="0,0,8,8" />
+                            <Button Content="Import Chrome Tabs"
+                                    Command="{Binding ImportLatestChromeTabsCommand}"
+                                    MinWidth="160"
+                                    MinHeight="38"
+                                    Margin="0,0,8,8" />
+                        </WrapPanel>
+
+                        <Button Grid.Column="1"
+                                Content="Delete Preset"
                                 Command="{Binding DeleteCommand}"
-                                MinWidth="80"
-                                Margin="0,0,8,0" />
-                        <Button Content="Run"
-                                Command="{Binding RunCommand}"
-                                MinWidth="80"
-                                Margin="0,0,8,0" />
-                        <Button Content="Capture Current Apps"
-                                Command="{Binding CaptureCurrentAppsCommand}"
-                                MinWidth="150"
-                                Margin="0,0,8,0" />
-                        <Button Content="Import Latest Chrome Tabs"
-                                Command="{Binding ImportLatestChromeTabsCommand}"
-                                MinWidth="180" />
-                    </StackPanel>
+                                MinWidth="120"
+                                MinHeight="38"
+                                Margin="12,0,0,8" />
+                    </Grid>
+
+                    <TextBlock DockPanel.Dock="Top"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,12">
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="Last operation: {0} - {1}">
+                                <Binding Path="LastOperationStatusLabel" />
+                                <Binding Path="LastOperationStatus" />
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
 
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -187,18 +213,86 @@
                                        FontSize="18"
                                        FontWeight="SemiBold"
                                        Margin="0,0,0,8" />
+                            <TextBlock DockPanel.Dock="Bottom"
+                                       Text="No presets yet. Add a preset, then use Capture Current Apps or add targets manually."
+                                       TextWrapping="Wrap"
+                                       Margin="0,10,0,0">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Presets.Count}" Value="0">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
                             <ListBox ItemsSource="{Binding Presets}"
                                      SelectedItem="{Binding SelectedPreset, Mode=TwoWay}"
                                      DisplayMemberPath="Name" />
                         </DockPanel>
 
+                        <Border Grid.Column="2"
+                                BorderBrush="#D8DDE8"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="18">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedPreset}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel>
+                                <TextBlock Text="No preset selected"
+                                           FontSize="18"
+                                           FontWeight="SemiBold"
+                                           Margin="0,0,0,8" />
+                                <TextBlock Text="Create a preset to define apps, URLs, folders, Chrome tabs, or Notion pages. You can also start by capturing currently visible apps."
+                                           TextWrapping="Wrap"
+                                           Margin="0,0,0,14" />
+                                <WrapPanel>
+                                    <Button Content="Add Preset"
+                                            Command="{Binding AddCommand}"
+                                            MinWidth="120"
+                                            MinHeight="38"
+                                            Margin="0,0,8,8" />
+                                    <Button Content="Chrome Capture Setup"
+                                            Command="{Binding ChromeCaptureSetupCommand}"
+                                            MinWidth="170"
+                                            MinHeight="38"
+                                            Margin="0,0,8,8" />
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
+
                         <ScrollViewer Grid.Column="2"
                                       VerticalScrollBarVisibility="Auto">
+                            <ScrollViewer.Style>
+                                <Style TargetType="ScrollViewer">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedPreset}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ScrollViewer.Style>
                             <StackPanel>
                                 <TextBlock Text="Selected Preset"
                                            FontSize="18"
                                            FontWeight="SemiBold"
                                            Margin="0,0,0,12" />
+                                <Border BorderBrush="#D8DDE8"
+                                        BorderThickness="1"
+                                        CornerRadius="6"
+                                        Padding="14"
+                                        Margin="0,0,0,16">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto" />
@@ -206,9 +300,10 @@
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="150" />
+                                        <ColumnDefinition Width="180" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
 
@@ -216,15 +311,29 @@
                                     <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SelectedPreset.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
                                     <TextBlock Grid.Row="1" Grid.Column="0" Text="Description" Margin="0,4,12,10" />
                                     <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SelectedPreset.Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" MinHeight="64" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0,0,0,10" />
-                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Hotkey" Margin="0,0,12,10" />
-                                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding SelectedPreset.HotkeyText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PreviewKeyDown="OnHotkeyTextBoxPreviewKeyDown" Margin="0,0,0,10" />
-                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Close policy" Margin="0,0,12,10" />
-                                    <ComboBox Grid.Row="3" Grid.Column="1" ItemsSource="{Binding ClosePolicies}" SelectedItem="{Binding SelectedPreset.ClosePolicy, Mode=TwoWay}" Margin="0,0,0,10" />
-                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Confirmation" Margin="0,0,12,0" />
-                                    <ComboBox Grid.Row="4" Grid.Column="1" ItemsSource="{Binding CloseConfirmationPolicies}" SelectedItem="{Binding SelectedPreset.CloseConfirmationPolicy, Mode=TwoWay}" />
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Close policy" Margin="0,0,12,10" />
+                                    <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding ClosePolicies}" SelectedItem="{Binding SelectedPreset.ClosePolicy, Mode=TwoWay}" Margin="0,0,0,10" />
+                                    <TextBlock Grid.Row="3" Grid.Column="1"
+                                               Text="CloseVisibleWindowsOnly closes visible top-level user windows before launching targets. MokoSnap is excluded and confirmation rules still apply."
+                                               TextWrapping="Wrap"
+                                               Margin="0,0,0,10">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedPreset.ClosePolicy}" Value="{x:Static models:ClosePolicy.CloseVisibleWindowsOnly}">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Close confirmation policy" Margin="0,0,12,10" />
+                                    <ComboBox Grid.Row="4" Grid.Column="1" ItemsSource="{Binding CloseConfirmationPolicies}" SelectedItem="{Binding SelectedPreset.CloseConfirmationPolicy, Mode=TwoWay}" Margin="0,0,0,10" />
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Preset hotkey" Margin="0,0,12,0" />
+                                    <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding SelectedPreset.HotkeyText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PreviewKeyDown="OnHotkeyTextBoxPreviewKeyDown" />
                                 </Grid>
-
-                                <Separator Margin="0,18,0,14" />
+                                </Border>
 
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -239,16 +348,64 @@
                                                    FontSize="18"
                                                    FontWeight="SemiBold"
                                                    Margin="0,0,0,8" />
+                                        <TextBlock DockPanel.Dock="Top"
+                                                   Text="Select a target to edit its details."
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,0,0,8" />
                                         <WrapPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
-                                            <Button Content="Add" Command="{Binding SelectedPreset.AddTargetCommand}" MinWidth="56" Margin="0,0,6,6" />
-                                            <Button Content="Delete" Command="{Binding SelectedPreset.DeleteTargetCommand}" MinWidth="64" Margin="0,0,6,6" />
-                                            <Button Content="Up" Command="{Binding SelectedPreset.MoveTargetUpCommand}" MinWidth="44" Margin="0,0,6,6" />
-                                            <Button Content="Down" Command="{Binding SelectedPreset.MoveTargetDownCommand}" MinWidth="56" Margin="0,0,6,6" />
+                                            <Button Content="Add Target" Command="{Binding SelectedPreset.AddTargetCommand}" MinWidth="92" Margin="0,0,6,6" />
+                                            <Button Content="Delete Target" Command="{Binding SelectedPreset.DeleteTargetCommand}" MinWidth="104" Margin="0,0,6,6" />
+                                            <Button Content="Move Up" Command="{Binding SelectedPreset.MoveTargetUpCommand}" MinWidth="80" Margin="0,0,6,6" />
+                                            <Button Content="Move Down" Command="{Binding SelectedPreset.MoveTargetDownCommand}" MinWidth="92" Margin="0,0,6,6" />
                                         </WrapPanel>
+                                        <TextBlock DockPanel.Dock="Bottom"
+                                                   Text="{Binding SelectedPreset.TargetEditorStatusMessage}"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,8,0,0" />
+                                        <TextBlock DockPanel.Dock="Bottom"
+                                                   Text="No targets yet. Use Capture Current Apps, Import Chrome Tabs, or Add Target. If Chrome import is unavailable, open Chrome Capture Setup first."
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,8,0,0">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedPreset.Targets.Count}" Value="0">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
                                         <ListBox ItemsSource="{Binding SelectedPreset.Targets}"
                                                  SelectedItem="{Binding SelectedPreset.SelectedTarget, Mode=TwoWay}"
-                                                 DisplayMemberPath="Summary"
-                                                 MinHeight="240" />
+                                                 MinHeight="260">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Padding="8"
+                                                            Margin="0,2">
+                                                        <StackPanel>
+                                                            <DockPanel Margin="0,0,0,4">
+                                                                <TextBlock DockPanel.Dock="Right"
+                                                                           Text="{Binding TypeLabel}"
+                                                                           FontWeight="SemiBold"
+                                                                           Margin="10,0,0,0" />
+                                                                <TextBlock Text="{Binding DisplayTitle}"
+                                                                           FontWeight="SemiBold"
+                                                                           TextTrimming="CharacterEllipsis" />
+                                                            </DockPanel>
+                                                            <TextBlock Text="{Binding DetailSummary}"
+                                                                       TextWrapping="Wrap"
+                                                                       TextTrimming="CharacterEllipsis"
+                                                                       Margin="0,0,0,3" />
+                                                            <TextBlock Text="{Binding MetadataSummary}"
+                                                                       TextWrapping="Wrap"
+                                                                       FontSize="12" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
                                     </DockPanel>
 
                                     <StackPanel Grid.Column="2" DataContext="{Binding SelectedPreset.SelectedTarget}">
@@ -256,7 +413,31 @@
                                                    FontSize="18"
                                                    FontWeight="SemiBold"
                                                    Margin="0,0,0,12" />
+                                        <TextBlock Text="No target selected. Add a target, capture current apps, or import Chrome tabs to start editing."
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,0,0,12">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding}" Value="{x:Null}">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
                                         <Grid>
+                                            <Grid.Style>
+                                                <Style TargetType="Grid">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding}" Value="{x:Null}">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Grid.Style>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto" />
                                                 <RowDefinition Height="Auto" />

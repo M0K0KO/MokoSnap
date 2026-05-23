@@ -45,6 +45,39 @@ public sealed class TargetEditorViewModel : INotifyPropertyChanged
 
     public string Summary => string.IsNullOrWhiteSpace(DisplayName) ? Type.ToString() : DisplayName;
 
+    public string TypeLabel => Type.ToString();
+
+    public string DisplayTitle => string.IsNullOrWhiteSpace(DisplayName) ? $"{Type} target" : DisplayName;
+
+    public string DetailSummary => Type switch
+    {
+        TargetType.Application => string.IsNullOrWhiteSpace(ExecutablePath) ? "No executable path set" : ExecutablePath,
+        TargetType.Chrome => $"{SplitLines(UrlsText).Count} URL(s)",
+        TargetType.Notion => $"{SplitLines(PageUrlsText).Count} page(s)",
+        TargetType.Url => string.IsNullOrWhiteSpace(Url) ? "No URL set" : Url,
+        TargetType.Folder => string.IsNullOrWhiteSpace(Path) ? "No folder path set" : Path,
+        _ => string.Empty
+    };
+
+    public string MetadataSummary
+    {
+        get
+        {
+            List<string> parts = [];
+            if (LaunchDelayMs > 0)
+            {
+                parts.Add($"Delay {LaunchDelayMs} ms");
+            }
+
+            if (Type == TargetType.Application && WindowPlacementEnabled)
+            {
+                parts.Add($"Window placement: {WindowPlacementSummary}");
+            }
+
+            return parts.Count == 0 ? "No delay or placement" : string.Join(" | ", parts);
+        }
+    }
+
     public TargetType Type
     {
         get => _type;
@@ -53,6 +86,10 @@ public sealed class TargetEditorViewModel : INotifyPropertyChanged
             if (SetField(ref _type, value))
             {
                 OnPropertyChanged(nameof(Summary));
+                OnPropertyChanged(nameof(TypeLabel));
+                OnPropertyChanged(nameof(DisplayTitle));
+                OnPropertyChanged(nameof(DetailSummary));
+                OnPropertyChanged(nameof(MetadataSummary));
                 OnPropertyChanged(nameof(IsApplication));
                 OnPropertyChanged(nameof(IsUrl));
                 OnPropertyChanged(nameof(IsFolder));
@@ -70,6 +107,7 @@ public sealed class TargetEditorViewModel : INotifyPropertyChanged
             if (SetField(ref _displayName, value))
             {
                 OnPropertyChanged(nameof(Summary));
+                OnPropertyChanged(nameof(DisplayTitle));
             }
         }
     }
@@ -77,7 +115,13 @@ public sealed class TargetEditorViewModel : INotifyPropertyChanged
     public string ExecutablePath
     {
         get => _executablePath;
-        set => SetField(ref _executablePath, value);
+        set
+        {
+            if (SetField(ref _executablePath, value))
+            {
+                OnPropertyChanged(nameof(DetailSummary));
+            }
+        }
     }
 
     public string Arguments
@@ -95,7 +139,13 @@ public sealed class TargetEditorViewModel : INotifyPropertyChanged
     public int LaunchDelayMs
     {
         get => _launchDelayMs;
-        set => SetField(ref _launchDelayMs, value);
+        set
+        {
+            if (SetField(ref _launchDelayMs, value))
+            {
+                OnPropertyChanged(nameof(MetadataSummary));
+            }
+        }
     }
 
     public bool RunAsAdmin
@@ -121,6 +171,7 @@ public sealed class TargetEditorViewModel : INotifyPropertyChanged
 
             placement.Enabled = value;
             OnWindowPlacementChanged(nameof(WindowPlacementEnabled));
+            OnPropertyChanged(nameof(MetadataSummary));
         }
     }
 
@@ -244,13 +295,25 @@ public sealed class TargetEditorViewModel : INotifyPropertyChanged
     public string UrlsText
     {
         get => _urlsText;
-        set => SetField(ref _urlsText, value);
+        set
+        {
+            if (SetField(ref _urlsText, value))
+            {
+                OnPropertyChanged(nameof(DetailSummary));
+            }
+        }
     }
 
     public string PageUrlsText
     {
         get => _pageUrlsText;
-        set => SetField(ref _pageUrlsText, value);
+        set
+        {
+            if (SetField(ref _pageUrlsText, value))
+            {
+                OnPropertyChanged(nameof(DetailSummary));
+            }
+        }
     }
 
     public bool PreferDesktopApp
@@ -262,13 +325,25 @@ public sealed class TargetEditorViewModel : INotifyPropertyChanged
     public string Url
     {
         get => _url;
-        set => SetField(ref _url, value);
+        set
+        {
+            if (SetField(ref _url, value))
+            {
+                OnPropertyChanged(nameof(DetailSummary));
+            }
+        }
     }
 
     public string Path
     {
         get => _path;
-        set => SetField(ref _path, value);
+        set
+        {
+            if (SetField(ref _path, value))
+            {
+                OnPropertyChanged(nameof(DetailSummary));
+            }
+        }
     }
 
     public bool IsApplication => Type == TargetType.Application;
@@ -339,6 +414,7 @@ public sealed class TargetEditorViewModel : INotifyPropertyChanged
         OnPropertyChanged(propertyName);
         OnPropertyChanged(nameof(HasWindowPlacement));
         OnPropertyChanged(nameof(WindowPlacementSummary));
+        OnPropertyChanged(nameof(MetadataSummary));
     }
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

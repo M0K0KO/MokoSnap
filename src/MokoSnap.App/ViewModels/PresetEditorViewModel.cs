@@ -15,6 +15,7 @@ public sealed class PresetEditorViewModel : INotifyPropertyChanged
     private ClosePolicy _closePolicy;
     private CloseConfirmationPolicy _closeConfirmationPolicy = CloseConfirmationPolicy.AlwaysConfirm;
     private TargetEditorViewModel? _selectedTarget;
+    private string _targetEditorStatusMessage = string.Empty;
 
     public PresetEditorViewModel(Preset preset)
     {
@@ -98,6 +99,12 @@ public sealed class PresetEditorViewModel : INotifyPropertyChanged
         set => SetField(ref _closeConfirmationPolicy, value);
     }
 
+    public string TargetEditorStatusMessage
+    {
+        get => _targetEditorStatusMessage;
+        private set => SetField(ref _targetEditorStatusMessage, value);
+    }
+
     public Preset ToPreset()
     {
         return new Preset
@@ -121,6 +128,7 @@ public sealed class PresetEditorViewModel : INotifyPropertyChanged
             SelectedTarget = target;
         }
 
+        TargetEditorStatusMessage = "Captured app target(s) added. Save the preset to persist changes.";
         RaiseTargetCommandCanExecuteChanged();
     }
 
@@ -129,6 +137,7 @@ public sealed class PresetEditorViewModel : INotifyPropertyChanged
         TargetEditorViewModel target = new(targetConfig);
         Targets.Add(target);
         SelectedTarget = target;
+        TargetEditorStatusMessage = "Chrome tabs imported as a target. Save the preset to persist changes.";
         RaiseTargetCommandCanExecuteChanged();
     }
 
@@ -142,6 +151,7 @@ public sealed class PresetEditorViewModel : INotifyPropertyChanged
 
         Targets.Add(target);
         SelectedTarget = target;
+        TargetEditorStatusMessage = "Target added. Save the preset to persist changes.";
         RaiseTargetCommandCanExecuteChanged();
     }
 
@@ -155,6 +165,7 @@ public sealed class PresetEditorViewModel : INotifyPropertyChanged
         int index = Targets.IndexOf(SelectedTarget);
         Targets.Remove(SelectedTarget);
         SelectedTarget = Targets.Count == 0 ? null : Targets[Math.Min(index, Targets.Count - 1)];
+        TargetEditorStatusMessage = "Target deleted. Save the preset to persist changes.";
         RaiseTargetCommandCanExecuteChanged();
     }
 
@@ -172,6 +183,7 @@ public sealed class PresetEditorViewModel : INotifyPropertyChanged
         }
 
         Targets.Move(index, index - 1);
+        TargetEditorStatusMessage = "Target moved up. Save the preset to persist changes.";
         RaiseTargetCommandCanExecuteChanged();
     }
 
@@ -189,6 +201,7 @@ public sealed class PresetEditorViewModel : INotifyPropertyChanged
         }
 
         Targets.Move(index, index + 1);
+        TargetEditorStatusMessage = "Target moved down. Save the preset to persist changes.";
         RaiseTargetCommandCanExecuteChanged();
     }
 
