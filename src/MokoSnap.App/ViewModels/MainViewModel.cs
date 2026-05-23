@@ -39,6 +39,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private string _latestChromeCaptureStatusLabel = "Not configured";
     private string _latestChromeCaptureStatusText = string.Empty;
     private string _diagnosticsText = string.Empty;
+    private SettingsDialogViewModel? _settingsPage;
+    private string _settingsPageStatus = string.Empty;
     private bool _isRunning;
     private bool _launchOnStartup;
     private bool _startMinimizedToTray;
@@ -84,6 +86,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
         ChromeCaptureSetupCommand = new RelayCommand(OpenChromeCaptureSetup);
         SaveStartupSettingsCommand = new AsyncRelayCommand(SaveStartupSettingsAsync);
         OpenSettingsCommand = new AsyncRelayCommand(OpenSettingsAsync);
+        SaveSettingsPageCommand = new AsyncRelayCommand(SaveSettingsPageAsync);
+        CancelSettingsPageCommand = new RelayCommand(ResetSettingsPage);
         OpenGettingStartedCommand = new AsyncRelayCommand(OpenGettingStartedAsync);
         ShowPresetsSectionCommand = new RelayCommand(() => SelectedShellSection = ShellSectionPresets);
         ShowSettingsSectionCommand = new RelayCommand(() => SelectedShellSection = ShellSectionSettings);
@@ -123,6 +127,10 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public AsyncRelayCommand SaveStartupSettingsCommand { get; }
 
     public AsyncRelayCommand OpenSettingsCommand { get; }
+
+    public AsyncRelayCommand SaveSettingsPageCommand { get; }
+
+    public RelayCommand CancelSettingsPageCommand { get; }
 
     public AsyncRelayCommand OpenGettingStartedCommand { get; }
 
@@ -226,6 +234,18 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public string LastOperationStatus => string.IsNullOrWhiteSpace(StatusMessage) ? "None." : StatusMessage;
 
     public string LastOperationStatusLabel => GetMessageStatusLabel(StatusMessage);
+
+    public SettingsDialogViewModel? SettingsPage
+    {
+        get => _settingsPage;
+        private set => SetField(ref _settingsPage, value);
+    }
+
+    public string SettingsPageStatus
+    {
+        get => _settingsPageStatus;
+        private set => SetField(ref _settingsPageStatus, value);
+    }
 
     public string DiagnosticsText
     {
@@ -389,6 +409,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         StatusMessage = !string.IsNullOrWhiteSpace(loadWarning)
             ? loadWarning
             : string.IsNullOrWhiteSpace(migrationWarning) ? loadedStatus : migrationWarning;
+        ResetSettingsPage("Settings loaded.");
         RefreshDiagnostics();
     }
 
@@ -528,6 +549,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private void OpenChromeCaptureSetup()
     {
         _chromeNativeHostSetupDialogService.ShowSetupDialog();
+        ResetSettingsPage("Chrome Capture status refreshed.");
         RefreshDiagnostics();
     }
 
@@ -581,19 +603,56 @@ public sealed class MainViewModel : INotifyPropertyChanged
         await RunPresetAsync(selection.Preset);
     }
 
-    public Task OpenSettingsAsync()
+    public async Task OpenSettingsAsync()
     {
         try
         {
             SettingsDialogResult? result = _settingsDialogService.ShowSettings(CreateSettingsDialogRequest());
-            return result is null ? Task.CompletedTask : ApplySettingsAsync(result);
+            if (result is null)
+            {
+                return;
+            }
+
+            await ApplySettingsAsync(result);
+            ResetSettingsPage(StatusMessage);
         }
         catch (Exception ex)
         {
             StatusMessage = $"Settings failed to open: {ex.Message}";
             RefreshDiagnostics();
-            return Task.CompletedTask;
         }
+    }
+
+    private async Task SaveSettingsPageAsync()
+    {
+        if (SettingsPage is null)
+        {
+            ResetSettingsPage();
+        }
+
+        if (SettingsPage is null ||
+            !SettingsPage.TryCreateResult(out SettingsDialogResult? result) ||
+            result is null)
+        {
+            SettingsPageStatus = "Settings not saved. Fix the validation warning, then save again.";
+            return;
+        }
+
+        await ApplySettingsAsync(result);
+        SettingsPageStatus = StatusMessage;
+        ResetSettingsPage(SettingsPageStatus);
+    }
+
+    private void ResetSettingsPage()
+    {
+        ResetSettingsPage("Unsaved settings changes were discarded.");
+    }
+
+    private void ResetSettingsPage(string statusMessage)
+    {
+        SettingsDialogRequest request = CreateSettingsDialogRequest();
+        SettingsPage = new SettingsDialogViewModel(request, OpenChromeCaptureSetup);
+        SettingsPageStatus = statusMessage;
     }
 
     public Task OpenGettingStartedAsync()
@@ -795,7 +854,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
             RegisteredStartupCommand = registeredStartupCommand,
             ExpectedStartupCommand = expectedStartupCommand,
             StartupStatusError = startupStatusError,
-            HotkeyStatusText = string.Join(Environment.NewLine, _lastHotkeyMessages)
+            HotkeyStatusText = string.Join(Environment.NewLine, _lastHotkeyMessages),
+            ChromeCaptureStatusText = _chromeCaptureDiagnosticsService.GetSnapshot().DetailsText
         };
     }
 

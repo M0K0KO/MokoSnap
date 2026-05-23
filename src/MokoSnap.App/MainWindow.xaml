@@ -611,25 +611,117 @@
                            FontSize="22"
                            FontWeight="SemiBold"
                            Margin="0,0,0,12" />
-                <TextBlock Text="Hotkeys, startup, start minimized, minimize to tray, and Chrome Capture Setup are configured in Settings."
+                <TextBlock Text="Change hotkeys, startup, tray behavior, and Chrome Capture setup from this page. Save applies changes immediately; cancel reloads the last saved settings."
                            TextWrapping="Wrap"
                            FontSize="14"
                            Margin="0,0,0,18" />
-                <Grid Margin="0,0,0,18">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="180" />
-                        <ColumnDefinition Width="120" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Quick Switcher" FontWeight="SemiBold" />
-                    <TextBlock Grid.Column="1" Text="{Binding QuickSwitcherStatusLabel}" />
-                    <TextBlock Grid.Column="2" Text="{Binding QuickSwitcherHotkeySummary}" />
-                </Grid>
-                <Button Content="Open Settings"
-                        Command="{Binding OpenSettingsCommand}"
-                        HorizontalAlignment="Left"
-                        MinWidth="220"
-                        MinHeight="44" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel DataContext="{Binding SettingsPage}">
+                        <TextBlock Text="General"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Margin="0,0,0,12" />
+                        <CheckBox Content="Minimize to tray"
+                                  IsChecked="{Binding MinimizeToTray, Mode=TwoWay}"
+                                  Margin="0,0,0,8" />
+                        <CheckBox Content="Start minimized to tray"
+                                  IsChecked="{Binding StartMinimizedToTray, Mode=TwoWay}"
+                                  Margin="0,0,0,18" />
+
+                        <Separator Margin="0,0,0,16" />
+
+                        <TextBlock Text="Quick Switcher Hotkey"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Margin="0,0,0,12" />
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="180" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="110" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       Text="Quick Switcher"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,12,0" />
+                            <TextBox Grid.Column="1"
+                                     Text="{Binding QuickSwitcherHotkeyText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     PreviewKeyDown="OnHotkeyTextBoxPreviewKeyDown"
+                                     Margin="0,0,8,0" />
+                            <Button Grid.Column="2"
+                                    Content="Reset"
+                                    Command="{Binding ResetQuickSwitcherHotkeyCommand}" />
+                        </Grid>
+                        <TextBox Text="{Binding HotkeyValidationText, Mode=OneWay}"
+                                 IsReadOnly="True"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 MinHeight="72"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Margin="0,0,0,18" />
+
+                        <Separator Margin="0,0,0,16" />
+
+                        <TextBlock Text="Startup / Tray"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Margin="0,0,0,12" />
+                        <CheckBox Content="Launch MokoSnap when Windows starts"
+                                  IsChecked="{Binding LaunchOnStartup, Mode=TwoWay}"
+                                  Margin="0,0,0,10" />
+                        <TextBox Text="{Binding StartupStatusText, Mode=OneWay}"
+                                 IsReadOnly="True"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 MinHeight="56"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Margin="0,0,0,18" />
+
+                        <Separator Margin="0,0,0,16" />
+
+                        <TextBlock Text="Chrome Capture"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Margin="0,0,0,12" />
+                        <TextBox Text="{Binding ChromeCaptureStatusText, Mode=OneWay}"
+                                 IsReadOnly="True"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 MinHeight="76"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Margin="0,0,0,10" />
+                        <WrapPanel Margin="0,0,0,18">
+                            <Button Content="Open Chrome Capture Setup"
+                                    Command="{Binding OpenChromeCaptureSetupCommand}"
+                                    MinWidth="190"
+                                    MinHeight="38"
+                                    Margin="0,0,8,8" />
+                            <Button Content="Open Chrome Extensions Page"
+                                    Command="{Binding OpenChromeExtensionsCommand}"
+                                    MinWidth="200"
+                                    MinHeight="38"
+                                    Margin="0,0,8,8" />
+                        </WrapPanel>
+
+                        <Separator Margin="0,0,0,16" />
+
+                        <TextBlock Text="{Binding DataContext.SettingsPageStatus, RelativeSource={RelativeSource AncestorType=Window}}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,12" />
+                        <WrapPanel>
+                            <Button Content="Save Settings"
+                                    Command="{Binding DataContext.SaveSettingsPageCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    MinWidth="130"
+                                    MinHeight="40"
+                                    Margin="0,0,8,8" />
+                            <Button Content="Cancel / Revert Changes"
+                                    Command="{Binding DataContext.CancelSettingsPageCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    MinWidth="180"
+                                    MinHeight="40"
+                                    Margin="0,0,8,8" />
+                        </WrapPanel>
+                    </StackPanel>
+                </ScrollViewer>
             </StackPanel>
 
             <StackPanel Visibility="{Binding IsChromeCaptureSectionSelected, Converter={StaticResource BoolToVisibility}}">
