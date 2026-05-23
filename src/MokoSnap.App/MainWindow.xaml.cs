@@ -14,10 +14,11 @@ using MokoSnap.Platform.Windows.ChromeCapture;
 using MokoSnap.Platform.Windows.Hotkeys;
 using MokoSnap.Platform.Windows.Launching;
 using MokoSnap.Platform.Windows.Startup;
+using Wpf.Ui.Controls;
 
 namespace MokoSnap.App;
 
-public partial class MainWindow : Window
+public partial class MainWindow : FluentWindow
 {
     private WindowsGlobalHotkeyService? _hotkeyService;
     private HwndSource? _hwndSource;
