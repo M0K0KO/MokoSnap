@@ -14,26 +14,51 @@ public sealed class ChromeCaptureDiagnosticsService : IChromeCaptureDiagnosticsS
 
     public string GetStatusText()
     {
+        return GetSnapshot().DetailsText;
+    }
+
+    public ChromeCaptureDiagnosticsSnapshot GetSnapshot()
+    {
         try
         {
             ChromeNativeHostSetupStatus status = _setupService.CheckStatus(new ChromeNativeHostSetupRequest());
-            string nativeHost = status.ManifestFileExists &&
-                status.ManifestJsonValid &&
-                status.RegistryKeyExists &&
-                status.RegistryValuePointsToExpectedManifest
-                    ? "configured"
-                    : "not configured";
-            string capture = status.LatestCaptureFileExists
-                ? $"latest capture found: {status.LatestCapturePath}"
-                : $"latest capture missing: {status.LatestCapturePath}";
+            string nativeHostLabel = status.Ready
+                ? "OK"
+                : status.Errors.Count > 0 ? "Error" : "Not configured";
+            string nativeHostText = status.Ready
+                ? "Native host is registered for the current user."
+                : "Native host setup is incomplete. Open Chrome Capture Setup.";
+            string captureLabel = status.LatestCaptureFileExists ? "OK" : "Not configured";
+            string captureText = status.LatestCaptureFileExists
+                ? $"Latest capture file found: {status.LatestCapturePath}"
+                : $"No latest capture file yet. Expected file: {status.LatestCapturePath}";
             string issues = status.Errors.Count > 0
                 ? $"Errors: {string.Join(" ", status.Errors)}"
                 : status.Warnings.Count > 0 ? $"Warnings: {string.Join(" ", status.Warnings)}" : "No warnings.";
-            return $"Chrome native host: {nativeHost}{Environment.NewLine}Chrome capture: {capture}{Environment.NewLine}{issues}";
+            return new ChromeCaptureDiagnosticsSnapshot
+            {
+                NativeHostStatusLabel = nativeHostLabel,
+                NativeHostStatusText = nativeHostText,
+                LatestCaptureStatusLabel = captureLabel,
+                LatestCaptureStatusText = captureText,
+                DetailsText =
+                    $"Chrome native host: {nativeHostLabel} - {nativeHostText}{Environment.NewLine}" +
+                    $"Chrome capture: {captureLabel} - {captureText}{Environment.NewLine}" +
+                    issues
+            };
         }
         catch (Exception ex)
         {
-            return $"Chrome native host: warning/error{Environment.NewLine}Chrome diagnostics failed: {ex.Message}";
+            return new ChromeCaptureDiagnosticsSnapshot
+            {
+                NativeHostStatusLabel = "Error",
+                NativeHostStatusText = $"Chrome diagnostics failed: {ex.Message}",
+                LatestCaptureStatusLabel = "Warning",
+                LatestCaptureStatusText = "Latest capture status could not be checked.",
+                DetailsText =
+                    $"Chrome native host: Error - Chrome diagnostics failed: {ex.Message}{Environment.NewLine}" +
+                    "Chrome capture: Warning - Latest capture status could not be checked."
+            };
         }
     }
 }

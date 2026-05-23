@@ -34,6 +34,10 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private string _quickSwitcherHotkeyStatus = "Not registered yet.";
     private string _singleInstanceStatus = "Active primary instance.";
     private string _chromeCaptureStatus = string.Empty;
+    private string _chromeNativeHostStatusLabel = "Not configured";
+    private string _chromeNativeHostStatusText = string.Empty;
+    private string _latestChromeCaptureStatusLabel = "Not configured";
+    private string _latestChromeCaptureStatusText = string.Empty;
     private string _diagnosticsText = string.Empty;
     private bool _isRunning;
     private bool _launchOnStartup;
@@ -162,8 +166,20 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public string QuickSwitcherHotkeyStatus
     {
         get => _quickSwitcherHotkeyStatus;
-        private set => SetField(ref _quickSwitcherHotkeyStatus, value);
+        private set
+        {
+            if (!SetField(ref _quickSwitcherHotkeyStatus, value))
+            {
+                return;
+            }
+
+            OnPropertyChanged(nameof(QuickSwitcherStatusLabel));
+        }
     }
+
+    public string QuickSwitcherStatusLabel => QuickSwitcherHotkeyStatus.Contains("failed", StringComparison.OrdinalIgnoreCase)
+        ? "Error"
+        : QuickSwitcherHotkeyStatus.Contains("not registered", StringComparison.OrdinalIgnoreCase) ? "Warning" : "OK";
 
     public string SingleInstanceStatus
     {
@@ -171,13 +187,45 @@ public sealed class MainViewModel : INotifyPropertyChanged
         private set => SetField(ref _singleInstanceStatus, value);
     }
 
+    public string SingleInstanceStatusLabel => "OK";
+
     public string TrayStatus => "Running.";
+
+    public string TrayStatusLabel => "OK";
 
     public string ChromeCaptureStatus
     {
         get => _chromeCaptureStatus;
         private set => SetField(ref _chromeCaptureStatus, value);
     }
+
+    public string ChromeNativeHostStatusLabel
+    {
+        get => _chromeNativeHostStatusLabel;
+        private set => SetField(ref _chromeNativeHostStatusLabel, value);
+    }
+
+    public string ChromeNativeHostStatusText
+    {
+        get => _chromeNativeHostStatusText;
+        private set => SetField(ref _chromeNativeHostStatusText, value);
+    }
+
+    public string LatestChromeCaptureStatusLabel
+    {
+        get => _latestChromeCaptureStatusLabel;
+        private set => SetField(ref _latestChromeCaptureStatusLabel, value);
+    }
+
+    public string LatestChromeCaptureStatusText
+    {
+        get => _latestChromeCaptureStatusText;
+        private set => SetField(ref _latestChromeCaptureStatusText, value);
+    }
+
+    public string LastOperationStatus => string.IsNullOrWhiteSpace(StatusMessage) ? "None." : StatusMessage;
+
+    public string LastOperationStatusLabel => GetMessageStatusLabel(StatusMessage);
 
     public string DiagnosticsText
     {
@@ -212,6 +260,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
         {
             _statusMessage = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(LastOperationStatus));
+            OnPropertyChanged(nameof(LastOperationStatusLabel));
         }
     }
 
@@ -871,16 +921,56 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     private void RefreshDiagnostics()
     {
-        ChromeCaptureStatus = _chromeCaptureDiagnosticsService.GetStatusText();
+        ChromeCaptureDiagnosticsSnapshot chromeSnapshot = _chromeCaptureDiagnosticsService.GetSnapshot();
+        ChromeCaptureStatus = chromeSnapshot.DetailsText;
+        ChromeNativeHostStatusLabel = chromeSnapshot.NativeHostStatusLabel;
+        ChromeNativeHostStatusText = chromeSnapshot.NativeHostStatusText;
+        LatestChromeCaptureStatusLabel = chromeSnapshot.LatestCaptureStatusLabel;
+        LatestChromeCaptureStatusText = chromeSnapshot.LatestCaptureStatusText;
         DiagnosticsText = string.Join(
             Environment.NewLine,
             [
-                $"Quick Switcher hotkey: {QuickSwitcherHotkeySummary} - {QuickSwitcherHotkeyStatus}",
-                $"Single instance: {SingleInstanceStatus}",
-                $"Tray: {TrayStatus}",
+                $"Quick Switcher hotkey: {QuickSwitcherStatusLabel} - {QuickSwitcherHotkeySummary} - {QuickSwitcherHotkeyStatus}",
+                $"Single instance: {SingleInstanceStatusLabel} - {SingleInstanceStatus}",
+                $"Tray: {TrayStatusLabel} - {TrayStatus}",
                 ChromeCaptureStatus,
-                $"Last operation: {(string.IsNullOrWhiteSpace(StatusMessage) ? "None." : StatusMessage)}"
+                $"Last operation: {LastOperationStatusLabel} - {LastOperationStatus}"
             ]);
+    }
+
+    private static string GetMessageStatusLabel(string message)
+    {
+        if (message.Contains("failed", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("not saved", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("could not", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("error", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Error";
+        }
+
+        if (message.Contains("failure", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("warning", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("issue", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("not registered", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("canceled", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("No captured", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("No Chrome", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("No tabs", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Warning";
+        }
+
+        if (string.IsNullOrWhiteSpace(message) ||
+            message.Contains("completed", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("saved", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("loaded", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("registered", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("activated", StringComparison.OrdinalIgnoreCase))
+        {
+            return "OK";
+        }
+
+        return "Warning";
     }
 
     private static string BuildQuickSwitcherHotkeyStatus(
