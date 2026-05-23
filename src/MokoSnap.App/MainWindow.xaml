@@ -58,7 +58,9 @@
                         BorderThickness="1"
                         CornerRadius="6"
                         Padding="14"
-                        Margin="0,14,0,0">
+                        Margin="0,14,0,0"
+                        MaxHeight="230">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -70,8 +72,8 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="180" />
-                            <ColumnDefinition Width="120" />
+                            <ColumnDefinition Width="160" />
+                            <ColumnDefinition Width="100" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
@@ -82,9 +84,9 @@
                                    FontWeight="SemiBold"
                                    Margin="0,0,0,8" />
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Quick Switcher" FontWeight="SemiBold" Margin="0,3,12,3" />
-                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding QuickSwitcherStatusLabel}" Margin="0,3,12,3" />
-                        <TextBlock Grid.Row="1" Grid.Column="2" Margin="0,3,0,3">
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Quick Switcher" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,12,3" />
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding QuickSwitcherStatusLabel}" TextWrapping="Wrap" Margin="0,3,12,3" />
+                        <TextBlock Grid.Row="1" Grid.Column="2" TextWrapping="Wrap" Margin="0,3,0,3">
                             <TextBlock.Text>
                                 <MultiBinding StringFormat="{}{0} - {1}">
                                     <Binding Path="QuickSwitcherHotkeySummary" />
@@ -93,20 +95,20 @@
                             </TextBlock.Text>
                         </TextBlock>
 
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Single instance" FontWeight="SemiBold" Margin="0,3,12,3" />
-                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SingleInstanceStatusLabel}" Margin="0,3,12,3" />
-                        <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding SingleInstanceStatus}" Margin="0,3,0,3" />
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Single instance" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,12,3" />
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SingleInstanceStatusLabel}" TextWrapping="Wrap" Margin="0,3,12,3" />
+                        <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding SingleInstanceStatus}" TextWrapping="Wrap" Margin="0,3,0,3" />
 
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Tray" FontWeight="SemiBold" Margin="0,3,12,3" />
-                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding TrayStatusLabel}" Margin="0,3,12,3" />
-                        <TextBlock Grid.Row="3" Grid.Column="2" Text="{Binding TrayStatus}" Margin="0,3,0,3" />
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Tray" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,12,3" />
+                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding TrayStatusLabel}" TextWrapping="Wrap" Margin="0,3,12,3" />
+                        <TextBlock Grid.Row="3" Grid.Column="2" Text="{Binding TrayStatus}" TextWrapping="Wrap" Margin="0,3,0,3" />
 
-                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Chrome native host" FontWeight="SemiBold" Margin="0,3,12,3" />
-                        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ChromeNativeHostStatusLabel}" Margin="0,3,12,3" />
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Chrome native host" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,12,3" />
+                        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ChromeNativeHostStatusLabel}" TextWrapping="Wrap" Margin="0,3,12,3" />
                         <TextBlock Grid.Row="4" Grid.Column="2" Text="{Binding ChromeNativeHostStatusText}" TextWrapping="Wrap" Margin="0,3,0,3" />
 
-                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Latest Chrome capture" FontWeight="SemiBold" Margin="0,3,12,3" />
-                        <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding LatestChromeCaptureStatusLabel}" Margin="0,3,12,3" />
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Latest Chrome capture" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,12,3" />
+                        <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding LatestChromeCaptureStatusLabel}" TextWrapping="Wrap" Margin="0,3,12,3" />
                         <TextBlock Grid.Row="5" Grid.Column="2" Text="{Binding LatestChromeCaptureStatusText}" TextWrapping="Wrap" Margin="0,3,0,3" />
 
                         <Grid Grid.Row="6" Grid.ColumnSpan="3" Margin="0,10,0,0">
@@ -142,6 +144,7 @@
                             </WrapPanel>
                         </Grid>
                     </Grid>
+                    </ScrollViewer>
                 </Border>
 
                 <Grid>
@@ -307,11 +310,11 @@
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
 
-                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Name" Margin="0,0,12,10" />
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Name" TextWrapping="Wrap" Margin="0,0,12,10" />
                                     <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SelectedPreset.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
-                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Description" Margin="0,4,12,10" />
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Description" TextWrapping="Wrap" Margin="0,4,12,10" />
                                     <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SelectedPreset.Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" MinHeight="64" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0,0,0,10" />
-                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Close policy" Margin="0,0,12,10" />
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Close policy" TextWrapping="Wrap" Margin="0,0,12,10" />
                                     <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding ClosePolicies}" SelectedItem="{Binding SelectedPreset.ClosePolicy, Mode=TwoWay}" Margin="0,0,0,10" />
                                     <TextBlock Grid.Row="3" Grid.Column="1"
                                                Text="CloseVisibleWindowsOnly closes visible top-level user windows before launching targets. MokoSnap is excluded and confirmation rules still apply."
@@ -328,9 +331,9 @@
                                             </Style>
                                         </TextBlock.Style>
                                     </TextBlock>
-                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Close confirmation policy" Margin="0,0,12,10" />
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Close confirmation policy" TextWrapping="Wrap" Margin="0,0,12,10" />
                                     <ComboBox Grid.Row="4" Grid.Column="1" ItemsSource="{Binding CloseConfirmationPolicies}" SelectedItem="{Binding SelectedPreset.CloseConfirmationPolicy, Mode=TwoWay}" Margin="0,0,0,10" />
-                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Preset hotkey" Margin="0,0,12,0" />
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Preset hotkey" TextWrapping="Wrap" Margin="0,0,12,0" />
                                     <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding SelectedPreset.HotkeyText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PreviewKeyDown="OnHotkeyTextBoxPreviewKeyDown" />
                                 </Grid>
                                 </Border>
@@ -389,14 +392,14 @@
                                                                 <TextBlock DockPanel.Dock="Right"
                                                                            Text="{Binding TypeLabel}"
                                                                            FontWeight="SemiBold"
+                                                                           TextWrapping="Wrap"
                                                                            Margin="10,0,0,0" />
                                                                 <TextBlock Text="{Binding DisplayTitle}"
                                                                            FontWeight="SemiBold"
-                                                                           TextTrimming="CharacterEllipsis" />
+                                                                           TextWrapping="Wrap" />
                                                             </DockPanel>
                                                             <TextBlock Text="{Binding DetailSummary}"
                                                                        TextWrapping="Wrap"
-                                                                       TextTrimming="CharacterEllipsis"
                                                                        Margin="0,0,0,3" />
                                                             <TextBlock Text="{Binding MetadataSummary}"
                                                                        TextWrapping="Wrap"
@@ -606,16 +609,26 @@
                 </DockPanel>
             </Grid>
 
-            <StackPanel Visibility="{Binding IsSettingsSectionSelected, Converter={StaticResource BoolToVisibility}}">
-                <TextBlock Text="Settings"
+            <Grid Visibility="{Binding IsSettingsSectionSelected, Converter={StaticResource BoolToVisibility}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0"
+                           Text="Settings"
                            FontSize="22"
                            FontWeight="SemiBold"
+                           TextWrapping="Wrap"
                            Margin="0,0,0,12" />
-                <TextBlock Text="Change hotkeys, startup, tray behavior, and Chrome Capture setup from this page. Save applies changes immediately; cancel reloads the last saved settings."
+                <TextBlock Grid.Row="1"
+                           Text="Change hotkeys, startup, tray behavior, and Chrome Capture setup from this page. Save applies changes immediately; cancel reloads the last saved settings."
                            TextWrapping="Wrap"
                            FontSize="14"
                            Margin="0,0,0,18" />
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ScrollViewer Grid.Row="2"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
                     <StackPanel DataContext="{Binding SettingsPage}">
                         <TextBlock Text="General"
                                    FontSize="18"
@@ -636,9 +649,9 @@
                                    Margin="0,0,0,12" />
                         <Grid Margin="0,0,0,10">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="180" />
+                                <ColumnDefinition Width="160" />
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0"
                                        Text="Quick Switcher"
@@ -722,19 +735,29 @@
                         </WrapPanel>
                     </StackPanel>
                 </ScrollViewer>
-            </StackPanel>
+            </Grid>
 
-            <StackPanel Visibility="{Binding IsChromeCaptureSectionSelected, Converter={StaticResource BoolToVisibility}}">
-                <TextBlock Text="Chrome Capture"
+            <Grid Visibility="{Binding IsChromeCaptureSectionSelected, Converter={StaticResource BoolToVisibility}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0"
+                           Text="Chrome Capture"
                            FontSize="22"
                            FontWeight="SemiBold"
+                           TextWrapping="Wrap"
                            Margin="0,0,0,12" />
-                <TextBlock Text="Capture Chrome tabs with the MokoSnap Chrome extension, then import the latest capture into the selected preset."
+                <TextBlock Grid.Row="1"
+                           Text="Capture Chrome tabs with the MokoSnap Chrome extension, then import the latest capture into the selected preset."
                            TextWrapping="Wrap"
                            FontSize="14"
                            Margin="0,0,0,16" />
 
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ScrollViewer Grid.Row="2"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
                     <StackPanel>
                         <TextBlock Text="Setup Steps"
                                    FontSize="18"
@@ -799,27 +822,27 @@
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="190" />
-                                <ColumnDefinition Width="120" />
+                                <ColumnDefinition Width="160" />
+                                <ColumnDefinition Width="100" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Native Host registration" FontWeight="SemiBold" Margin="0,3,12,6" />
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ChromeNativeHostStatusLabel}" Margin="0,3,12,6" />
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Native Host registration" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,12,6" />
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ChromeNativeHostStatusLabel}" TextWrapping="Wrap" Margin="0,3,12,6" />
                             <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,3,0,6">
                                 <TextBlock Text="{Binding ChromeNativeHostStatusText}" TextWrapping="Wrap" />
                                 <TextBlock Text="{Binding ChromeNativeHostExePath, StringFormat=Native host exe: {0}}" TextWrapping="Wrap" FontSize="12" />
                             </StackPanel>
 
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Latest capture file" FontWeight="SemiBold" Margin="0,3,12,6" />
-                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding LatestChromeCaptureStatusLabel}" Margin="0,3,12,6" />
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Latest capture file" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,12,6" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding LatestChromeCaptureStatusLabel}" TextWrapping="Wrap" Margin="0,3,12,6" />
                             <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,3,0,6">
                                 <TextBlock Text="{Binding LatestChromeCaptureStatusText}" TextWrapping="Wrap" />
                                 <TextBlock Text="{Binding LatestChromeCapturePath, StringFormat=Capture path: {0}}" TextWrapping="Wrap" FontSize="12" />
                             </StackPanel>
 
-                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Extension setup" FontWeight="SemiBold" Margin="0,3,12,0" />
-                            <TextBlock Grid.Row="2" Grid.Column="1" Text="Reminder" Margin="0,3,12,0" />
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Extension setup" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,12,0" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="Reminder" TextWrapping="Wrap" Margin="0,3,12,0" />
                             <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding ChromeExtensionSetupReminder}" TextWrapping="Wrap" Margin="0,3,0,0" />
                         </Grid>
 
@@ -851,39 +874,151 @@
                                  VerticalScrollBarVisibility="Auto" />
                     </StackPanel>
                 </ScrollViewer>
-            </StackPanel>
+            </Grid>
 
-            <StackPanel Visibility="{Binding IsHelpSectionSelected, Converter={StaticResource BoolToVisibility}}">
-                <TextBlock Text="Help"
+            <Grid Visibility="{Binding IsHelpSectionSelected, Converter={StaticResource BoolToVisibility}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0"
+                           Text="Help"
                            FontSize="22"
                            FontWeight="SemiBold"
+                           TextWrapping="Wrap"
                            Margin="0,0,0,12" />
-                <WrapPanel Margin="0,0,0,18">
-                    <Button Content="Getting Started"
-                            Command="{Binding OpenGettingStartedCommand}"
-                            MinWidth="160"
-                            MinHeight="40"
-                            Margin="0,0,8,8" />
-                    <Button Content="Open Settings"
-                            Command="{Binding OpenSettingsCommand}"
-                            MinWidth="150"
-                            MinHeight="40"
-                            Margin="0,0,8,8" />
-                    <Button Content="Chrome Capture Setup"
-                            Command="{Binding ChromeCaptureSetupCommand}"
-                            MinWidth="190"
-                            MinHeight="40"
-                            Margin="0,0,8,8" />
-                </WrapPanel>
-                <StackPanel>
-                    <TextBlock Text="MokoSnap runs in the tray/background." TextWrapping="Wrap" Margin="0,0,0,8" />
-                    <TextBlock Text="Ctrl+Alt+M opens the Quick Switcher by default." TextWrapping="Wrap" Margin="0,0,0,8" />
-                    <TextBlock Text="X hides to tray when minimize-to-tray is enabled." TextWrapping="Wrap" Margin="0,0,0,8" />
-                    <TextBlock Text="Capture Current Apps creates Application targets from visible app windows." TextWrapping="Wrap" Margin="0,0,0,8" />
-                    <TextBlock Text="Chrome tab capture requires Chrome Capture Setup before importing tabs." TextWrapping="Wrap" Margin="0,0,0,8" />
-                    <TextBlock Text="Settings can change hotkeys, startup, and tray behavior." TextWrapping="Wrap" />
-                </StackPanel>
-            </StackPanel>
+                <TextBlock Grid.Row="1"
+                           Text="MokoSnap switches your desktop work mode with presets. A preset can launch apps, folders, URLs, Notion pages, and captured Chrome tabs."
+                           TextWrapping="Wrap"
+                           FontSize="14"
+                           Margin="0,0,0,16" />
+
+                <ScrollViewer Grid.Row="2"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel>
+                        <WrapPanel Margin="0,0,0,18">
+                            <Button Content="Open Getting Started"
+                                    Command="{Binding OpenGettingStartedCommand}"
+                                    MinWidth="180"
+                                    MinHeight="40"
+                                    Margin="0,0,8,8" />
+                            <Button Content="Open Settings"
+                                    Command="{Binding OpenSettingsCommand}"
+                                    MinWidth="150"
+                                    MinHeight="40"
+                                    Margin="0,0,8,8" />
+                            <Button Content="Open Chrome Capture Setup"
+                                    Command="{Binding ChromeCaptureSetupCommand}"
+                                    MinWidth="220"
+                                    MinHeight="40"
+                                    Margin="0,0,8,8" />
+                            <Button Content="Capture Current Apps"
+                                    Command="{Binding CaptureCurrentAppsCommand}"
+                                    MinWidth="180"
+                                    MinHeight="40"
+                                    Margin="0,0,8,8" />
+                            <Button Content="Open Quick Switcher"
+                                    Command="{Binding OpenQuickSwitcherCommand}"
+                                    MinWidth="180"
+                                    MinHeight="40"
+                                    Margin="0,0,8,8" />
+                        </WrapPanel>
+
+                        <TextBlock Text="Quick Start"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Margin="0,0,0,10" />
+                        <Grid Margin="0,0,0,18">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="36" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="1." FontWeight="SemiBold" Margin="0,0,8,6" />
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Create a preset." TextWrapping="Wrap" Margin="0,0,0,6" />
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="2." FontWeight="SemiBold" Margin="0,0,8,6" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="Capture current apps or add targets manually." TextWrapping="Wrap" Margin="0,0,0,6" />
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="3." FontWeight="SemiBold" Margin="0,0,8,6" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="Save the preset." TextWrapping="Wrap" Margin="0,0,0,6" />
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="4." FontWeight="SemiBold" Margin="0,0,8,6" />
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="Assign a preset hotkey if desired." TextWrapping="Wrap" Margin="0,0,0,6" />
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="5." FontWeight="SemiBold" Margin="0,0,8,6" />
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="Run the preset from the button, tray, hotkey, or Quick Switcher." TextWrapping="Wrap" Margin="0,0,0,6" />
+                            <TextBlock Grid.Row="5" Grid.Column="0" Text="6." FontWeight="SemiBold" Margin="0,0,8,6" />
+                            <TextBlock Grid.Row="5" Grid.Column="1" Text="Optional: set up Chrome Capture." TextWrapping="Wrap" Margin="0,0,0,6" />
+                            <TextBlock Grid.Row="6" Grid.Column="0" Text="7." FontWeight="SemiBold" Margin="0,0,8,0" />
+                            <TextBlock Grid.Row="6" Grid.Column="1" Text="Optional: enable launch on startup in Settings." TextWrapping="Wrap" />
+                        </Grid>
+
+                        <TextBlock Text="Core Workflow"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Margin="0,0,0,10" />
+                        <Grid Margin="0,0,0,18">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Create presets" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,12,8" />
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Use Presets to define what opens for a work mode." TextWrapping="Wrap" Margin="0,0,0,8" />
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Capture apps" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,12,8" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="Capture Current Apps creates Application targets from visible app windows." TextWrapping="Wrap" Margin="0,0,0,8" />
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Run presets" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,12,8" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="Run a preset from Presets, the tray menu, a preset hotkey, or the Quick Switcher." TextWrapping="Wrap" Margin="0,0,0,8" />
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Quick Switcher" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,12,8" />
+                            <TextBlock Grid.Row="3" Grid.Column="1" TextWrapping="Wrap" Margin="0,0,0,8">
+                                <TextBlock.Text>
+                                    <Binding Path="QuickSwitcherHotkeySummary"
+                                             StringFormat="Current hotkey: {0}. Default is Ctrl+Alt+M. Preset hotkeys are set per preset, and hotkeys can be changed in Settings." />
+                                </TextBlock.Text>
+                            </TextBlock>
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Tray mode" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,12,8" />
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="MokoSnap can keep running in the tray/background. X hides to tray when minimize-to-tray is enabled." TextWrapping="Wrap" Margin="0,0,0,8" />
+                            <TextBlock Grid.Row="5" Grid.Column="0" Text="Chrome Capture" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,12,0" />
+                            <TextBlock Grid.Row="5" Grid.Column="1" Text="Chrome tab capture uses the Chrome extension plus Native Messaging. Set it up on the Chrome Capture page, capture tabs in Chrome, then import the latest capture into a preset." TextWrapping="Wrap" />
+                        </Grid>
+
+                        <TextBlock Text="Important Notes"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Margin="0,0,0,10" />
+                        <StackPanel Margin="0,0,0,18">
+                            <TextBlock Text="Close Visible Windows sends graceful close requests only to visible top-level windows." TextWrapping="Wrap" Margin="0,0,0,8" />
+                            <TextBlock Text="Unsaved work in other apps may prompt or block closing." TextWrapping="Wrap" Margin="0,0,0,8" />
+                            <TextBlock Text="MokoSnap does not restore app-internal fullscreen or game state." TextWrapping="Wrap" Margin="0,0,0,8" />
+                            <TextBlock Text="Window placement restore remembers position, size, monitor, and show state; it does not restore true Windows Snap Layout metadata." TextWrapping="Wrap" Margin="0,0,0,8" />
+                            <TextBlock Text="Chrome tab capture requires extension and Native Host setup before importing tabs." TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <TextBlock Text="Settings"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Margin="0,0,0,10" />
+                        <TextBlock Text="Use Settings to change the Quick Switcher hotkey, startup behavior, start minimized, minimize-to-tray behavior, and Chrome Capture setup."
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
                 </Grid>
             </DockPanel>
         </Grid>

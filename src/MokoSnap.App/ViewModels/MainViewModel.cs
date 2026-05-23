@@ -98,6 +98,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         SaveSettingsPageCommand = new AsyncRelayCommand(SaveSettingsPageAsync);
         CancelSettingsPageCommand = new RelayCommand(ResetSettingsPage);
         OpenGettingStartedCommand = new AsyncRelayCommand(OpenGettingStartedAsync);
+        OpenQuickSwitcherCommand = new AsyncRelayCommand(OpenCommandPaletteAsync);
         ShowPresetsSectionCommand = new RelayCommand(() => SelectedShellSection = ShellSectionPresets);
         ShowSettingsSectionCommand = new RelayCommand(() => SelectedShellSection = ShellSectionSettings);
         ShowChromeCaptureSectionCommand = new RelayCommand(() => SelectedShellSection = ShellSectionChromeCapture);
@@ -150,6 +151,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public RelayCommand CancelSettingsPageCommand { get; }
 
     public AsyncRelayCommand OpenGettingStartedCommand { get; }
+
+    public AsyncRelayCommand OpenQuickSwitcherCommand { get; }
 
     public RelayCommand ShowPresetsSectionCommand { get; }
 
